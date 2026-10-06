@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>검사의 성장 RPG</title>
+<style>
+:root {
+  --bg: #070b12;
+  --panel: rgba(16, 22, 34, .78);
+  --line: rgba(120, 150, 200, .22);
+  --text: #eef3fb;
+  --dim: #8b97ad;
+  --gold: #ffd45a;
+  --hp: #3ee29a;
+  --exp: #a078ff;
+  --skill: #6ea8ff;
+  --danger: #ff5d6c;
+  --glow: 0 0 28px rgba(90, 130, 255, .28);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; min-height: 100%;
+  background: var(--bg); color: var(--text);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", Segoe UI, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(80, 110, 255, .18), transparent 55%),
+    radial-gradient(900px 500px at 110% 20%, rgba(160, 80, 255, .12), transparent 50%),
+    radial-gradient(700px 400px at 50% 120%, rgba(40, 180, 140, .08), transparent 50%);
+}
+#stars {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+}
+
+#app {
+  position: relative; z-index: 1;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 12px 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#app.hidden, .screen.hidden, .hidden { display: none !important; }
+.screen {
+  position: relative; z-index: 1;
+  max-width: 720px;
+  margin: 40px auto 24px;
+  padding: 18px 16px 28px;
+}
+.menu-card, .train-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--glow);
+  border-radius: 22px;
+  padding: 28px 24px;
+}
+.menu-kicker { color: #8ea4c8; letter-spacing: .34em; font-size: 11px; text-align: center; font-weight: 800; }
+.menu-title {
+  text-align: center; font-size: clamp(38px, 8vw, 64px); font-weight: 950; margin: 6px 0 8px;
+  letter-spacing: -.05em;
+  background: linear-gradient(180deg, #ffffff 15%, #d7e4ff 52%, #769cff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 8px 24px rgba(100,140,255,.2));
+}
+.menu-sub { text-align: center; color: #9eabc1; margin: 0 auto 24px; line-height: 1.65; max-width: 540px; }
+.menu-btns { display: grid; gap: 10px; }
+.menu-btns button { padding: 16px; font-size: 18px; }
+.menu-btns #menuStart {
+  border-color: rgba(110,168,255,.7);
+  background: linear-gradient(135deg, rgba(74,108,180,.55), rgba(25,34,53,.95));
+  box-shadow: 0 0 28px rgba(75,125,255,.2), inset 0 1px rgba(255,255,255,.12);
+}
+.menu-btns #menuStart:hover { box-shadow: 0 0 38px rgba(75,125,255,.35), inset 0 1px rgba(255,255,255,.18); }
+.menu-gold {
+  text-align: center; color: var(--gold); font-weight: 800; margin-top: 16px;
+  padding-top: 14px; border-top: 1px solid rgba(120,150,200,.14);
+}
+.menu-hero {
+  position: relative; min-height: 520px; display: flex; flex-direction: column;
+  justify-content: center; overflow: hidden; border-radius: 26px;
+  padding: 34px 24px 26px;
+  background:
+    radial-gradient(circle at 50% 31%, rgba(92,130,255,.2), transparent 24%),
+    radial-gradient(circle at 50% 70%, rgba(150,80,255,.08), transparent 34%),
+    linear-gradient(145deg, rgba(12,19,33,.94), rgba(8,12,21,.88));
+  border: 1px solid rgba(125,155,220,.28);
+}
+.menu-hero::before {
+  content: ""; position: absolute; width: 420px; height: 420px; left: 50%; top: 20%;
+  transform: translate(-50%,-50%); border-radius: 50%;
+  border: 1px solid rgba(130,165,255,.12);
+  box-shadow: 0 0 80px rgba(80,120,255,.12), inset 0 0 80px rgba(80,120,255,.08);
+  pointer-events: none;
+}
+.menu-hero::after {
+  content: "✦"; position: absolute; left: 50%; top: 28%;
+  transform: translate(-50%,-50%); font-size: 220px; line-height: 1;
+  color: rgba(130,165,255,.025); pointer-events: none;
+}
+.menu-emblem {
+  position: relative; z-index: 2; width: 92px; height: 92px; margin: 0 auto 12px;
+  display: grid; place-items: center; border-radius: 28px;
+  font-size: 50px; transform: rotate(-4deg);
+  background: linear-gradient(145deg, rgba(80,120,210,.34), rgba(20,28,46,.9));
+  border: 1px solid rgba(150,180,255,.35);
+  box-shadow: 0 0 35px rgba(80,120,255,.25), inset 0 1px rgba(255,255,255,.12);
+  animation: menuFloat 3.5s ease-in-out infinite;
+}
+@keyframes menuFloat { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-7px) rotate(3deg); } }
+.menu-title, .menu-kicker, .menu-sub, .menu-btns, .menu-gold, .menu-info-grid { position: relative; z-index: 2; }
+.menu-info-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  max-width: 570px; width: 100%; margin: 0 auto 18px;
+}
+.menu-info {
+  padding: 10px 8px; text-align: center; border-radius: 13px;
+  background: rgba(255,255,255,.035); border: 1px solid rgba(120,150,200,.13);
+}
+.menu-info b { display: block; font-size: 15px; margin-bottom: 3px; }
+.menu-info span { color: #7f8ca3; font-size: 10px; }
+.menu-gold { max-width: 570px; width: 100%; margin-left: auto; margin-right: auto; }
+.menu-version {
+  position: absolute; right: 18px; bottom: 14px; z-index: 2;
+  color: #58667e; font-size: 10px; letter-spacing: .12em;
+}
+.auth-form { display: grid; gap: 8px; max-width: 420px; width: 100%; margin: 0 auto; }
+.auth-form input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.35); color: var(--text);
+  font-size: 16px; font-family: inherit;
+}
+.auth-form input:focus { outline: 1px solid rgba(110,168,255,.7); }
+.auth-msg { text-align: center; min-height: 22px; font-size: 13px; color: var(--danger); }
+.auth-msg.ok { color: var(--hp); }
+.auth-switch { text-align: center; color: var(--dim); font-size: 13px; }
+.auth-switch button { width: auto; padding: 6px 10px; display: inline; font-size: 13px; }
+.menu-user { text-align: center; color: #9eabc1; font-size: 13px; margin-top: 10px; }
+.menu-user button { width: auto; padding: 6px 12px; font-size: 12px; margin-left: 8px; }
+.pass-item .stars { color: var(--gold); font-size: 12px; letter-spacing: .12em; }
+.pass-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+  cursor: pointer;
+}
+.pass-item.on { border-color: #55d6ff; background: rgba(85,214,255,.12); }
+.pass-item.locked { opacity: .45; cursor: default; }
+.screen-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+
+.header, .stats, .log, .actions, .skill-strip, .modalBox, .enemy-hud {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--glow);
+}
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: 16px; padding: 10px 16px;
+}
+.kicker { color: var(--dim); letter-spacing: .28em; font-size: 11px; }
+.title {
+  font-size: clamp(20px, 3vw, 28px); font-weight: 800; margin-top: 2px;
+  background: linear-gradient(90deg, #fff, #c9d7ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.gold-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid rgba(255, 212, 90, .35);
+  background: rgba(255, 212, 90, .08);
+  color: var(--gold); font-weight: 800; font-size: 18px;
+  min-width: 120px; justify-content: center;
+}
+
+.stats {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 8px; padding: 8px; border-radius: 16px;
+}
+.stat { padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.03); }
+.stat small { color: var(--dim); font-size: 11px; }
+.stat b { display: block; margin-top: 4px; font-size: 16px; }
+.bar {
+  height: 8px; margin-top: 7px; border-radius: 20px;
+  background: #1c2330; overflow: hidden;
+}
+.bar > div { display: block; height: 100%; width: 0; border-radius: 20px; transition: width .35s ease; }
+.hpbar { background: linear-gradient(90deg, #1fa86a, var(--hp)); box-shadow: 0 0 10px rgba(62,226,154,.5); }
+.expbar { background: linear-gradient(90deg, #6b40d6, var(--exp)); }
+.enemybar { background: linear-gradient(90deg, #c62828, var(--danger)); }
+
+.arena-wrap { position: relative; }
+.arena {
+  position: relative; height: 300px;
+  overflow: hidden; border-radius: 22px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 70% 20%, rgba(180,200,255,.16), transparent 28%),
+    linear-gradient(180deg, #152033 0%, #0b101a 55%, #121820 100%);
+  box-shadow: inset 0 0 80px rgba(0,0,0,.45);
+}
+.arena.shake { animation: shake .28s; }
+.arena.flash { animation: flash .25s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-7px); }
+  75% { transform: translateX(7px); }
+}
+@keyframes flash {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.55); }
+  100% { filter: brightness(1); }
+}
+.moon {
+  position: absolute; right: 14%; top: 12%;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, #c9d7ff 55%, #7f90b8);
+  box-shadow: 0 0 40px rgba(200,220,255,.45);
+  opacity: .7;
+}
+.fog {
+  position: absolute; inset: auto 0 0; height: 42%;
+  background: linear-gradient(transparent, rgba(8,12,18,.75));
+  pointer-events: none;
+}
+.ground {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
+  background: linear-gradient(180deg, rgba(40,55,70,.15), rgba(6,8,12,.85));
+  border-top: 1px solid rgba(140,170,210,.12);
+}
+.character {
+  position: absolute; bottom: 16%; z-index: 3;
+  font-size: 76px;
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,.55));
+  transition: transform .2s;
+  user-select: none;
+}
+.player { left: 18%; }
+.enemy { right: 11%; display: none; }
+.foe-char {
+  position: absolute; bottom: 15%; z-index: 3;
+  font-size: 56px; text-align: center; cursor: pointer;
+  user-select: none;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.5));
+  transition: transform .16s, filter .16s, opacity .2s;
+}
+.foe-char small {
+  display: block; font-size: 10px; font-weight: 800;
+  background: rgba(0,0,0,.5); border-radius: 8px; padding: 1px 6px; margin-top: -8px;
+}
+.foe-char.selected {
+  filter: drop-shadow(0 0 16px #ff7d6a);
+  transform: translateY(-8px);
+}
+.foe-char.attackAnim { animation: foeLunge .28s; }
+@keyframes foeLunge {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-36px) scale(1.05); }
+  100% { transform: translateX(0); }
+}
+.ally-char {
+  position: absolute; bottom: 15%; z-index: 2;
+  font-size: 52px; user-select: none;
+  filter: drop-shadow(0 8px 10px rgba(0,0,0,.5));
+  text-align: center;
+}
+.ally-char small {
+  display: block; font-size: 10px; font-weight: 800;
+  background: rgba(0,0,0,.45); border-radius: 8px; padding: 1px 6px; margin-top: -6px;
+}
+.fx-row { font-size: 12px; color: #c9d4e8; margin-top: 4px; min-height: 16px; }
+.fx-chip {
+  display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(0,0,0,.35); font-size: 11px; font-weight: 800;
+}
+.skill-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.skill-tabs button { padding: 8px 12px; font-size: 13px; }
+.skill-tabs button.on { border-color: #55d6ff; background: #253149; }
+.name-tag {
+  position: absolute; bottom: 7%; z-index: 4;
+  font-size: 13px; font-weight: 800; letter-spacing: .04em;
+  padding: 3px 10px; border-radius: 999px;
+  background: rgba(0,0,0,.4); border: 1px solid var(--line);
+}
+.player-name { left: 12%; }
+.enemy-name { right: 12%; }
+.attackAnim { animation: lunge .38s cubic-bezier(.2,1.4,.4,1); }
+.hitAnim { animation: knock .42s; }
+.guardPose { filter: drop-shadow(0 0 18px #7ec8ff) drop-shadow(0 0 8px #fff); }
+@keyframes lunge {
+  0% { transform: translateX(0) rotate(0) scale(1); filter: brightness(1); }
+  35% { transform: translateX(58px) rotate(14deg) scale(1.18); filter: brightness(1.5); }
+  55% { transform: translateX(48px) rotate(8deg) scale(1.08); }
+  100% { transform: translateX(0) rotate(0) scale(1); filter: brightness(1); }
+}
+@keyframes knock {
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  20% { transform: translateX(-28px) rotate(-10deg) scale(1.08); filter: brightness(2); }
+  45% { transform: translateX(-8px) rotate(4deg); }
+  100% { transform: translateX(0) rotate(0) scale(1); filter: brightness(1); }
+}
+.skillFX {
+  position: absolute; left: 50%; top: 42%; z-index: 12;
+  transform: translate(-50%,-50%); font-size: 110px;
+  opacity: 0; pointer-events: none; filter: drop-shadow(0 0 18px #fff);
+}
+.skillFX.play { animation: skillPop .7s ease; }
+.skillFX.sk-wave { animation: skWave .85s cubic-bezier(.15,.8,.3,1); filter: drop-shadow(0 0 28px #7ec8ff) drop-shadow(0 0 12px #fff); font-size: 120px; }
+.skillFX.sk-gale { animation: skGale 1.05s ease; filter: drop-shadow(0 0 30px #c9f0ff) drop-shadow(0 0 14px #fff); font-size: 125px; }
+.skillFX.sk-storm { animation: skStorm .9s ease; filter: drop-shadow(0 0 26px #a8d4ff); }
+.skillFX.sk-fire { animation: skFire .95s ease; filter: drop-shadow(0 0 36px #ff6a3a) drop-shadow(0 0 16px #ffd45a); font-size: 130px; }
+.skillFX.sk-holy { animation: skHoly 1s ease; filter: drop-shadow(0 0 34px #ffe58a) drop-shadow(0 0 16px #fff); font-size: 125px; }
+.skillFX.sk-boom { animation: skBoom .95s cubic-bezier(.12,.9,.2,1); filter: drop-shadow(0 0 40px #ffd45a) drop-shadow(0 0 18px #ff5d6c); font-size: 140px; }
+.skillFX.sk-rage { animation: skRage .85s ease; filter: drop-shadow(0 0 32px #ff5d6c); font-size: 120px; }
+.skillFX.sk-guard { animation: skGuard .9s ease; filter: drop-shadow(0 0 32px #8ecbff) drop-shadow(0 0 10px #fff); }
+.skillFX.sk-drain { animation: skDrain .9s ease; filter: drop-shadow(0 0 30px #ff5a7a); }
+.skillFX.sk-pierce { animation: skPierce .8s ease; filter: drop-shadow(0 0 26px #ffd36a); }
+@keyframes skWave {
+  0% { opacity: 0; transform: translate(-110%,-50%) scale(.2) rotate(-18deg) skewX(-12deg); }
+  28% { opacity: 1; transform: translate(-20%,-52%) scale(1.45) rotate(-2deg); }
+  100% { opacity: 0; transform: translate(70%,-48%) scale(2.1) rotate(10deg) skewX(8deg); }
+}
+@keyframes skGale {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.15) rotate(0); }
+  20% { opacity: 1; transform: translate(-50%,-50%) scale(1.2) rotate(160deg); }
+  55% { opacity: 1; transform: translate(-50%,-50%) scale(1.7) rotate(400deg); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(2.4) rotate(720deg); }
+}
+@keyframes skStorm {
+  0% { opacity: 0; transform: translate(-50%,-30%) scale(.3) rotate(-20deg); }
+  35% { opacity: 1; transform: translate(-50%,-58%) scale(1.55) rotate(12deg); }
+  100% { opacity: 0; transform: translate(-50%,-80%) scale(2) rotate(-8deg); }
+}
+@keyframes skFire {
+  0% { opacity: 0; transform: translate(-50%,-10%) scale(.2); }
+  25% { opacity: 1; transform: translate(-50%,-45%) scale(1.55); }
+  70% { opacity: 1; transform: translate(-50%,-62%) scale(1.9); }
+  100% { opacity: 0; transform: translate(-50%,-90%) scale(2.5); }
+}
+@keyframes skHoly {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.1) rotate(-20deg); filter: brightness(3); }
+  35% { opacity: 1; transform: translate(-50%,-50%) scale(1.6); filter: brightness(1.6); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(2.6) rotate(15deg); }
+}
+@keyframes skBoom {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.05); }
+  18% { opacity: 1; transform: translate(-50%,-50%) scale(1.9); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(3.1); }
+}
+@keyframes skRage {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.6); }
+  20% { opacity: 1; transform: translate(-58%,-50%) scale(1.45) rotate(-8deg); }
+  45% { transform: translate(-40%,-52%) scale(1.25) rotate(8deg); }
+  70% { transform: translate(-55%,-48%) scale(1.35); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(1.8); }
+}
+@keyframes skGuard {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.3); }
+  30% { opacity: 1; transform: translate(-50%,-50%) scale(1.5); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(2.2); }
+}
+@keyframes skDrain {
+  0% { opacity: 0; transform: translate(25%,-50%) scale(.5); }
+  40% { opacity: 1; transform: translate(-50%,-50%) scale(1.4); }
+  100% { opacity: 0; transform: translate(-110%,-50%) scale(.3); }
+}
+@keyframes skPierce {
+  0% { opacity: 0; transform: translate(-100%,-35%) scale(.25) rotate(-50deg); }
+  32% { opacity: 1; transform: translate(-35%,-50%) scale(1.35) rotate(-8deg); }
+  100% { opacity: 0; transform: translate(40%,-58%) scale(1.9) rotate(12deg); }
+}
+.arena.flash { animation: flash .32s; }
+.arena.flash-fire { animation: flashFire .5s; }
+.arena.flash-holy { animation: flashHoly .5s; }
+.arena.flash-dark { animation: flashDark .5s; }
+.arena.quake { animation: quake .48s; }
+@keyframes flashFire {
+  0%,100% { filter: brightness(1); }
+  30% { filter: brightness(1.7) saturate(1.6) hue-rotate(-10deg); box-shadow: inset 0 0 120px rgba(255,70,20,.6); }
+}
+@keyframes flashHoly {
+  0%,100% { filter: brightness(1); }
+  30% { filter: brightness(1.85); box-shadow: inset 0 0 120px rgba(255,230,140,.5); }
+}
+@keyframes flashDark {
+  0%,100% { filter: brightness(1); }
+  30% { filter: brightness(1.4) saturate(1.3); box-shadow: inset 0 0 110px rgba(170,50,255,.5); }
+}
+@keyframes quake {
+  0%,100% { transform: translate(0); }
+  15% { transform: translate(-14px, 6px) rotate(-1deg); }
+  30% { transform: translate(12px, -8px) rotate(1deg); }
+  45% { transform: translate(-10px, 4px); }
+  60% { transform: translate(8px, -3px); }
+  80% { transform: translate(-4px, 2px); }
+}
+@keyframes skillPop {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.2) rotate(-25deg); }
+  35% { opacity: 1; transform: translate(-50%,-50%) scale(1.45); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(2.4) rotate(20deg); }
+}
+.slash {
+  position: absolute; z-index: 8; pointer-events: none;
+  width: 220px; height: 8px; border-radius: 8px;
+  background: linear-gradient(90deg, transparent, #fff, #9ad0ff, transparent);
+  box-shadow: 0 0 18px #9ad0ff;
+  opacity: 0;
+}
+.slash.play { animation: slash .4s ease; }
+@keyframes slash {
+  0% { opacity: 0; transform: rotate(-28deg) scaleX(.15); }
+  35% { opacity: 1; transform: rotate(-28deg) scaleX(1.15); }
+  100% { opacity: 0; transform: rotate(-22deg) translateX(50px) scaleX(.3); }
+}
+#fxLayer { position: absolute; inset: 0; pointer-events: none; z-index: 16; overflow: hidden; }
+.vfx {
+  position: absolute; pointer-events: none; z-index: 16;
+}
+.vfx.spark {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle, #fff, var(--spark, #9ad0ff) 55%, transparent 70%);
+  animation: sparkFly .5s ease-out forwards;
+}
+.vfx.ember {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle, #fff6c8, #ff6a3a 50%, transparent 70%);
+  animation: emberUp .7s ease-out forwards;
+}
+.vfx.ring {
+  width: 24px; height: 24px; margin-left: -12px; margin-top: -12px;
+  border: 3px solid var(--ring, #fff);
+  border-radius: 50%;
+  box-shadow: 0 0 16px var(--ring, #fff);
+  animation: ringPop .55s ease-out forwards;
+}
+.vfx.shock {
+  width: 30px; height: 30px; margin-left: -15px; margin-top: -15px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  animation: shockPop .45s cubic-bezier(.1,.8,.2,1) forwards;
+}
+@keyframes sparkFly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+}
+@keyframes emberUp {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2); }
+}
+@keyframes ringPop {
+  0% { opacity: 1; transform: scale(.3); }
+  100% { opacity: 0; transform: scale(6); }
+}
+@keyframes shockPop {
+  0% { opacity: .95; transform: scale(.2); }
+  100% { opacity: 0; transform: scale(9); }
+}
+.float {
+  position: absolute; z-index: 20; font-weight: 900; pointer-events: none;
+  animation: rise .8s forwards; text-shadow: 0 2px 8px #000;
+}
+.float.dmg { color: #ff6b6b; font-size: 30px; }
+.float.crit { color: #ffd45a; font-size: 42px; text-shadow: 0 0 18px #ffd45a, 0 2px 8px #000; animation: critPop .85s forwards; }
+.float.heal { color: #3ee29a; font-size: 26px; }
+.float.gold { color: #ffd45a; font-size: 22px; }
+@keyframes rise {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-78px) scale(1.18); }
+}
+@keyframes critPop {
+  0% { opacity: 1; transform: scale(.6) rotate(-8deg); }
+  25% { transform: scale(1.35) rotate(4deg); }
+  100% { opacity: 0; transform: translateY(-90px) scale(1.1); }
+}
+
+.enemy-hud {
+  position: absolute; left: 16px; right: 16px; top: 12px; z-index: 5;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px; border-radius: 14px;
+}
+.enemy-hud .meta { flex: 1; }
+.enemy-hud b { font-size: 15px; }
+.stage {
+  font-size: 11px; color: var(--dim); letter-spacing: .12em;
+}
+
+.log {
+  border-radius: 14px; padding: 8px 12px; min-height: 40px;
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700;
+}
+.log .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #6ea8ff; box-shadow: 0 0 10px #6ea8ff;
+  flex-shrink: 0;
+}
+
+.actions {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; padding: 8px; border-radius: 16px;
+}
+button {
+  border: 1px solid var(--line); background: #192231;
+  color: #fff; border-radius: 12px; padding: 12px 8px;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+  transition: transform .12s, background .12s, box-shadow .12s;
+}
+button:hover { background: #253149; transform: translateY(-1px); }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+.btn-atk { border-color: rgba(255,93,108,.45); }
+.btn-guard { border-color: rgba(110,168,255,.4); }
+.btn-skill { border-color: rgba(160,120,255,.5); }
+.ally-panel {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px; padding: 12px; border-radius: 16px;
+  border: 1px solid rgba(85,214,255,.45);
+  background: rgba(40, 70, 110, .35);
+}
+.ally-panel.show { display: grid; }
+.ally-turn-title {
+  grid-column: 1 / -1;
+  text-align: center; font-weight: 800; letter-spacing: .08em;
+  color: #9ad8ff;
+}
+.ally-skill-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.ally-skill-row button.on {
+  border-color: #55d6ff;
+  background: #253149;
+  box-shadow: 0 0 14px rgba(85,214,255,.25);
+}
+#allySkillBook { grid-column: 1 / -1; }
+.ally-char.acting {
+  filter: drop-shadow(0 0 14px #7ec8ff);
+  transform: translateY(-8px);
+}
+
+.skill-strip {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 8px; padding: 8px; border-radius: 16px;
+}
+.card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 12px;
+}
+.card.locked { opacity: .55; }
+.card.equipped {
+  border-color: #55d6ff;
+  box-shadow: 0 0 16px rgba(85,214,255,.25);
+}
+.cardTitle { font-size: 15px; font-weight: 800; }
+.cardInfo { color: var(--dim); font-size: 12px; margin: 4px 0; }
+.card button { width: auto; padding: 8px 12px; font-size: 13px; margin: 4px 4px 0 0; }
+
+.modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: none; align-items: flex-start; justify-content: center;
+  background: rgba(0,0,0,.72); backdrop-filter: blur(8px);
+  padding: 20px 16px;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+.modal.show { display: flex; }
+.modalBox {
+  position: relative;
+  z-index: 2;
+  width: min(640px, 100%);
+  max-height: calc(100vh - 40px);
+  margin: auto;
+  border-radius: 22px; padding: 22px 22px 16px;
+  border: 1px solid rgba(140,160,255,.4);
+  animation: pop .28s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+}
+@keyframes pop {
+  from { transform: scale(.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modalTitle { text-align: center; font-size: 28px; font-weight: 900; flex-shrink: 0; }
+.modalDesc { text-align: center; color: var(--dim); margin: 8px 0 14px; line-height: 1.55; flex-shrink: 0; }
+.choiceButtons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.choiceButtons button { min-height: 120px; font-size: 17px; }
+.goldChoice { border-color: #e6b92e; background: rgba(230,185,46,.08); }
+.skillChoice { border-color: #9b6cff; background: rgba(155,108,255,.08); }
+.shop-grid { display: grid; gap: 8px; overflow-y: auto; min-height: 0; flex: 1; }
+.shop-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+}
+.modal-close {
+  width: 100%;
+  margin-top: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+.gameover { text-align: center; }
+.gameover .skull { font-size: 72px; }
+.gameover h1 { color: var(--danger); margin: 8px 0; font-size: 40px; }
+
+@media (max-width: 860px) {
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .actions { grid-template-columns: repeat(3, 1fr); }
+  .skill-strip { grid-template-columns: repeat(2, 1fr); }
+  .choiceButtons { grid-template-columns: 1fr; }
+  .arena { height: 260px; }
+  .character { font-size: 64px; }
+}
+@media (max-width: 520px) {
+  .menu-hero { min-height: 500px; padding: 28px 16px 24px; }
+  .menu-emblem { width: 76px; height: 76px; font-size: 40px; border-radius: 22px; }
+  .menu-info-grid { gap: 5px; }
+  .menu-info { padding: 9px 4px; }
+  .menu-info b { font-size: 13px; }
+  .menu-info span { font-size: 9px; }
+  .zone-grid { grid-template-columns: 1fr; }
+
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .actions { grid-template-columns: repeat(2, 1fr); }
+  .arena { height: 240px; }
+  .character { font-size: 58px; }
+}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div id="authScreen" class="screen">
+  <div class="menu-card menu-hero">
+    <div class="menu-emblem">⚔️</div>
+    <div class="menu-kicker">THE SWORDSMAN'S JOURNEY</div>
+    <div class="menu-title">검사의 성장</div>
+    <div class="menu-sub" id="authSub">아이디와 비밀번호로 로그인하세요.</div>
+    <form class="auth-form" id="authForm">
+      <input id="authId" type="text" autocomplete="username" maxlength="16" placeholder="아이디 (3~16자)" required>
+      <input id="authPw" type="password" autocomplete="current-password" maxlength="32" placeholder="비밀번호 (4자 이상)" required>
+      <input id="authPw2" type="password" autocomplete="new-password" maxlength="32" placeholder="비밀번호 확인" class="hidden">
+      <div class="auth-msg" id="authMsg"></div>
+      <button type="submit" id="authSubmit">로그인</button>
+    </form>
+    <div class="auth-switch">
+      <span id="authSwitchTxt">계정이 없나요?</span>
+      <button type="button" id="authToggle">회원가입</button>
+    </div>
+    <div class="menu-version">SWORDSMAN RPG · v1.0</div>
+  </div>
+</div>
+
+<div id="menuScreen" class="screen hidden">
+  <div class="menu-card menu-hero">
+    <div class="menu-emblem">⚔️</div>
+    <div class="menu-kicker">THE SWORDSMAN'S JOURNEY</div>
+    <div class="menu-title">검사의 성장</div>
+    <div class="menu-sub">
+      쓰러져도 다시 일어나고, 더 강한 적을 넘어선다.<br>
+      당신의 검은 어디까지 성장할 것인가?
+    </div>
+
+    <div class="menu-info-grid">
+      <div class="menu-info"><b>⚔️ 성장</b><span>검 · 스킬 · 패시브</span></div>
+      <div class="menu-info"><b>👹 전투</b><span>몬스터 · 레이드 · 보스</span></div>
+      <div class="menu-info"><b>🏆 도전</b><span>강화 · 기록 · 빌드</span></div>
+    </div>
+
+    <div class="menu-btns">
+      <button id="menuStart">⚔️ 모험 시작</button>
+      <button id="menuTrain">🏟️ 훈련장</button>
+    </div>
+
+    <div class="menu-gold">훈련 자금 🪙 <span id="menuMetaGold">0</span></div>
+    <div class="menu-user">검사 <b id="menuUserName">-</b> <button type="button" id="logoutBtn">로그아웃</button></div>
+    <div class="menu-version">SWORDSMAN RPG · v1.0</div>
+  </div>
+</div>
+
+<div id="trainScreen" class="screen hidden">
+  <div class="menu-card">
+    <div class="screen-top">
+      <div class="menu-kicker" style="text-align:left;letter-spacing:.2em">TRAINING GROUND</div>
+      <button id="trainBack" style="width:auto;padding:8px 14px">← 메뉴</button>
+    </div>
+    <div class="menu-title" style="font-size:32px;text-align:left">훈련장</div>
+    <div class="menu-sub" style="text-align:left">모험에서 번 훈련 자금으로 강화하고 패시브를 해금한다.<br>보유 🪙 <b id="trainGold">0</b></div>
+    <div class="menu-kicker" style="text-align:left;margin:8px 0">단련</div>
+    <div id="trainUpList" class="pass-grid"></div>
+    <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">패시브 해금</div>
+    <div id="trainPassList" class="pass-grid"></div>
+  </div>
+</div>
+
+<div id="passiveScreen" class="screen hidden">
+  <div class="menu-card">
+    <div class="screen-top">
+      <div class="menu-kicker" style="text-align:left;letter-spacing:.2em">LOADOUT</div>
+      <button id="passBack" style="width:auto;padding:8px 14px">← 메뉴</button>
+    </div>
+    <div class="menu-title" style="font-size:32px;text-align:left">모험 준비</div>
+    <div class="menu-sub" style="text-align:left">갈 지역을 고르고, 이번 모험에 가져갈 패시브를 고르자.</div>
+    <div class="menu-kicker" style="text-align:left;margin:8px 0">지역</div>
+    <div id="zonePickList" class="zone-grid"></div>
+    <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">시작 패시브 · <span id="passSlotTxt">0/1</span></div>
+    <div id="passPickList" class="pass-grid"></div>
+    <div class="menu-btns" style="margin-top:16px">
+      <button id="passConfirm">⚔️ 이 빌드로 출발</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="header">
+    <div>
+      <div class="kicker">THE SWORDSMAN'S JOURNEY</div>
+      <div class="title">검사의 성장</div>
+    </div>
+    <div class="gold-chip">🪙 <span id="gold">100</span> G</div>
+    <button id="quitBtn" style="width:auto;padding:8px 12px;font-size:13px">메뉴</button>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><small>레벨</small><b id="level">Lv.1</b></div>
+    <div class="stat">
+      <small>HP</small><b id="hp">100 / 100</b>
+      <div class="bar"><div class="hpbar" id="hpBar"></div></div>
+    </div>
+    <div class="stat"><small>공격력</small><b id="atk">10</b></div>
+    <div class="stat">
+      <small>전투 EXP</small><b id="exp">0 / 100</b>
+      <div class="bar"><div class="expbar" id="expBar"></div></div>
+    </div>
+    <div class="stat"><small>스킬 EXP</small><b id="skillExp">0</b></div>
+  </section>
+
+  <div class="arena-wrap">
+    <div class="arena" id="arena">
+      <div class="moon"></div>
+      <div class="fog"></div>
+      <div class="ground"></div>
+      <div class="enemy-hud">
+        <div class="meta">
+          <div class="stage" id="stageTxt">STAGE 1 · 숲의 입구</div>
+          <b id="enemyTitle">숲의 슬라임</b>
+          <div class="fx-row" id="enemyFxTxt"></div>
+        </div>
+        <div style="min-width:140px;text-align:right">
+          <small id="enemyHPTxt">40 / 40</small>
+          <div class="bar"><div class="enemybar" id="enemyBar"></div></div>
+        </div>
+      </div>
+      <div class="character player" id="player">🧙</div>
+      <div id="allyLayer"></div>
+      <div id="enemyLayer"></div>
+      <div class="character enemy" id="enemy">🟢</div>
+      <div class="name-tag player-name">검사 <span id="heroFxTxt"></span></div>
+      <div class="name-tag enemy-name" id="enemyName">숲의 슬라임</div>
+      <div class="skillFX" id="skillFX">⚔️</div>
+      <div class="slash" id="slash"></div>
+      <div id="fxLayer"></div>
+    </div>
+  </div>
+
+  <div class="log"><span class="dot"></span><span id="log">모험을 시작했다. 슬라임을 처치하라.</span></div>
+
+  <section class="actions ally-panel" id="allyPanel">
+    <div class="ally-turn-title" id="allyTurnTitle">동료의 차례</div>
+    <button class="btn-atk" id="allyBasic">⚔️ 기본 공격</button>
+    <button class="btn-pot" id="allyPot">🧪 물약 <span id="allyPotCount">x0</span></button>
+    <div id="allySkillRow" class="ally-skill-row"></div>
+    <button id="allySkillBook">📘 이 동료 스킬 선택</button>
+  </section>
+
+  <section class="actions" id="heroPanel">
+    <button class="btn-atk" id="attackBtn">⚔️ 공격</button>
+    <button class="btn-guard" id="guardBtn">🛡️ 방어</button>
+    <button class="btn-skill" id="skillBtn">✨ 스킬</button>
+    <button class="btn-pot" id="potionBtn">🧪 회복 <span id="potCount">x2</span></button>
+    <button id="hastePotBtn">💨 신속 <span id="hasteCount">x0</span></button>
+    <button id="regenPotBtn">💚 재생 <span id="regenCount">x0</span></button>
+    <button id="poisonPotBtn">☠️ 독 <span id="poisonCount">x0</span></button>
+    <button id="hireBtn">🤝 고용 <span id="hireCostTxt">200</span>G</button>
+    <button id="skillManageBtn">📘 스킬창</button>
+    <button id="shopBtn">🏪 상점</button>
+  </section>
+
+  <section class="skill-strip" id="skillList"></section>
+</div>
+
+<div class="modal" id="rewardModal">
+  <div class="modalBox">
+    <div class="modalTitle">성장 보상</div>
+    <div class="modalDesc">전투 EXP가 가득 찼다.<br>이번 보상을 어디에 쓸까?</div>
+    <div class="choiceButtons">
+      <button class="goldChoice" id="goldReward">🪙 골드로 받기<br><br><span style="font-size:26px">+50 G</span></button>
+      <button class="skillChoice" id="skillReward">🔮 스킬 EXP로 받기<br><br><span style="font-size:26px">+50</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="skillModal">
+  <div class="modalBox">
+    <div class="modalTitle">스킬 관리</div>
+        <div class="modalDesc">스킬 EXP로 배우고 강화한다. 동료 스킬은 따로 사야 한다.</div>
+        <div class="skill-tabs" id="skillTabs"></div>
+    <div id="skillWindowList" class="shop-grid"></div>
+    <button id="closeSkill" class="modal-close">닫기</button>
+  </div>
+</div>
+
+<div class="modal" id="shopModal">
+  <div class="modalBox">
+    <div class="modalTitle">상점</div>
+    <div class="modalDesc">보유 골드 🪙 <span id="shopGold">100</span></div>
+    <div id="shopList" class="shop-grid"></div>
+    <button id="closeShop" class="modal-close">닫기</button>
+  </div>
+</div>
+
+<div class="modal" id="gameOverModal">
+  <div class="modalBox gameover">
+    <div class="skull">💀</div>
+    <h1>GAME OVER</h1>
+    <p>검사는 쓰러졌다.</p>
+    <p id="deathRecord"></p>
+    <p id="deathMeta" style="color:#ffd45a"></p>
+    <button id="restartBtn" style="width:100%;margin-top:12px">같은 지역·패시브로 재도전</button>
+    <button id="toMenuBtn" style="width:100%;margin-top:8px">메인 메뉴</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const REWARD_EXP = 100;
+  const ZONES = [
+    {
+      id: "forest", name: "숲", icon: "🌲", diff: 1.2, raidChance: 0.22, stars: "★",
+      desc: "입문 지대. 예전보다 적이 단단하다.",
+      stages: [
+        { name: "숲의 입구", waves: 5, pool: ["slime", "wolf", "bat"], rare: ["goldGoblin", "expSpirit"] },
+        { name: "붉은 수풀", waves: 4, pool: ["wolf", "boar", "snake", "fireSpirit"], rare: ["treasureGolem"] },
+        { name: "도적의 길", waves: 3, pool: ["bandit", "bat", "mage", "iceSpirit"], rare: ["goldGoblin"] },
+        { name: "폐성", waves: 2, pool: ["knight", "golem", "zombie", "cursedKnight", "mirror"], rare: ["expSpirit"] },
+        { name: "늑대 레이드", waves: 1, pool: ["wolf", "boar", "bat"], raid: [3, 4] },
+        { name: "정령의 틈", waves: 2, pool: ["fireSpirit", "iceSpirit", "thunderSpirit", "voidMob", "vampire"] },
+        { name: "정령 레이드", waves: 1, pool: ["fireSpirit", "iceSpirit", "thunderSpirit"], raid: [3, 3] },
+        { name: "정예 전선", waves: 2, pool: ["eliteKnight", "archmage", "berserker", "youngDragon", "watcher"] },
+        { name: "기사단 레이드", waves: 1, pool: ["knight", "eliteKnight", "cursedKnight"], raid: [2, 3] },
+        { name: "용의 둥지", waves: 1, pool: ["ancientDragon"] },
+        { name: "검의 시련", waves: 1, pool: ["swordKnight"] },
+        { name: "타락의 탑", waves: 1, pool: ["fallenMage"] },
+        { name: "공허의 문", waves: 1, pool: ["voidLord"] },
+        { name: "마왕의 전당", waves: 1, pool: ["demonKing"] }
+      ]
+    },
+    {
+      id: "plain", name: "초원", icon: "🌾", diff: 1.55, raidChance: 0.28, stars: "★★",
+      desc: "넓은 들판. 돌진과 기습이 끊이지 않는다.",
+      stages: [
+        { name: "바람 들판", waves: 4, pool: ["bison", "hawk", "bee", "wolf"], rare: ["goldGoblin"] },
+        { name: "사자 언덕", waves: 3, pool: ["lion", "hawk", "bison"], rare: ["expSpirit"] },
+        { name: "벌떼 레이드", waves: 1, pool: ["bee", "hawk"], raid: [3, 4] },
+        { name: "초원 정예", waves: 2, pool: ["lion", "centaur", "berserker"] },
+        { name: "켄타우로스 전장", waves: 1, pool: ["centaur"] }
+      ]
+    },
+    {
+      id: "desert", name: "사막", icon: "🏜️", diff: 1.95, raidChance: 0.3, stars: "★★★",
+      desc: "열기와 독침. 한 방이 아프다.",
+      stages: [
+        { name: "타오르는 모래", waves: 4, pool: ["cactus", "scorpion", "bandit"], rare: ["goldGoblin"] },
+        { name: "미라의 무덤", waves: 3, pool: ["mummy", "scorpion", "cursedKnight"], rare: ["treasureGolem"] },
+        { name: "모래벌레 굴", waves: 2, pool: ["sandworm", "mummy", "cactus"] },
+        { name: "전갈 레이드", waves: 1, pool: ["scorpion", "cactus"], raid: [3, 4] },
+        { name: "램프의 주인", waves: 1, pool: ["djinn"] }
+      ]
+    },
+    {
+      id: "jungle", name: "정글", icon: "🌴", diff: 2.4, raidChance: 0.34, stars: "★★★",
+      desc: "독과 은신. 회복이 잘 안 된다.",
+      stages: [
+        { name: "우거진 밀림", waves: 4, pool: ["jaguar", "frog", "piranha", "snake"], rare: ["expSpirit"] },
+        { name: "고릴라 언덕", waves: 3, pool: ["gorilla", "jaguar", "frog"] },
+        { name: "독안개 레이드", waves: 1, pool: ["frog", "piranha", "snake"], raid: [3, 4] },
+        { name: "주술의 제단", waves: 2, pool: ["jungleWitch", "gorilla", "vampire"] },
+        { name: "밀림의 왕", waves: 1, pool: ["jungleKing"] }
+      ]
+    },
+    {
+      id: "nether", name: "지옥", icon: "🔥", diff: 3.05, raidChance: 0.36, stars: "★★★★",
+      desc: "화염과 폭발. 장갑도 녹는다.",
+      stages: [
+        { name: "네더 황무지", waves: 4, pool: ["blaze", "magmaCube", "witherSkel"], rare: ["treasureGolem"] },
+        { name: "피글린 요새", waves: 3, pool: ["piglinBrute", "witherSkel", "blaze"] },
+        { name: "가스트의 하늘", waves: 2, pool: ["ghast", "blaze", "magmaCube"] },
+        { name: "지옥 레이드", waves: 1, pool: ["blaze", "witherSkel", "piglinBrute"], raid: [3, 4] },
+        { name: "위더의 제단", waves: 1, pool: ["wither"] }
+      ]
+    },
+    {
+      id: "ender", name: "엔더", icon: "🌌", diff: 3.75, raidChance: 0.38, stars: "★★★★",
+      desc: "공허가 스킬을 벗겨낸다.",
+      stages: [
+        { name: "엔드 섬", waves: 4, pool: ["enderman", "endermite", "voidMob"], rare: ["expSpirit"] },
+        { name: "셜커 성채", waves: 3, pool: ["shulker", "enderman", "chorusBeast"] },
+        { name: "엔더 레이드", waves: 1, pool: ["enderman", "shulker", "endermite"], raid: [3, 4] },
+        { name: "코러스 심연", waves: 2, pool: ["chorusBeast", "voidLord", "shulker"] },
+        { name: "엔더 드래곤", waves: 1, pool: ["enderDragon"] }
+      ]
+    },
+    {
+      id: "ancient", name: "고대도시", icon: "🌑", diff: 4.6, raidChance: 0.4, stars: "★★★★★",
+      desc: "침묵의 도시. 워든이 기다린다.",
+      stages: [
+        { name: "스컬크 통로", waves: 4, pool: ["sculk", "shrieker", "deepKnight"], rare: ["treasureGolem"] },
+        { name: "깊은 기사단", waves: 3, pool: ["deepKnight", "ancientGuard", "sculk"] },
+        { name: "비명 레이드", waves: 1, pool: ["shrieker", "sculk", "deepKnight"], raid: [3, 4] },
+        { name: "고대 감시탑", waves: 2, pool: ["ancientGuard", "watcher", "voidLord"] },
+        { name: "워든의 심장", waves: 1, pool: ["warden"] }
+      ]
+    }
+  ];
+
+  const starCanvas = document.getElementById("stars");
+  const sctx = starCanvas.getContext("2d");
+  let stars = [];
+  function resizeStars() {
+    starCanvas.width = innerWidth;
+    starCanvas.height = innerHeight;
+    stars = Array.from({ length: 70 }, () => ({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      r: Math.random() * 1.4 + .2,
+      a: Math.random()
+    }));
+  }
+  addEventListener("resize", resizeStars);
+  resizeStars();
+  (function twinkle() {
+    sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    stars.forEach((st) => {
+      st.a += 0.02;
+      sctx.fillStyle = "rgba(255,255,255," + (0.25 + Math.sin(st.a) * 0.25) + ")";
+      sctx.beginPath(); sctx.arc(st.x, st.y, st.r, 0, 6.28); sctx.fill();
+    });
+    requestAnimationFrame(twinkle);
+  })();
+
+  let audioCtx = null;
+  function tone(freq, dur, type, vol) {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type || "square";
+      o.frequency.value = freq;
+      g.gain.value = vol || 0.04;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+      o.stop(audioCtx.currentTime + dur);
+    } catch {}
+  }
+
+  const EFFECT_EXP = 3;
+  const USERS_KEY = "swordsman-users-v1";
+  const SESSION_KEY = "swordsman-session-v1";
+  function metaKey() { return "swordsman-meta-v1:" + (currentUser || "guest"); }
+  let currentUser = null;
+  let authMode = "login";
+  let selectedPassives = [];
+  let selectedZone = "forest";
+  function defaultMeta() {
+    return { gold: 80, train: {}, unlocked: ["iron", "keen"] };
+  }
+  function loadMeta() {
+    try {
+      const raw = localStorage.getItem(metaKey());
+      if (!raw) return defaultMeta();
+      const m = JSON.parse(raw);
+      return {
+        gold: Math.max(0, m.gold | 0),
+        train: m.train && typeof m.train === "object" ? m.train : {},
+        unlocked: Array.isArray(m.unlocked) ? m.unlocked : ["iron", "keen"]
+      };
+    } catch { return defaultMeta(); }
+  }
+  let meta = defaultMeta();
+  function saveMeta() { try { localStorage.setItem(metaKey(), JSON.stringify(meta)); } catch {} }
+  const TRAIN = [
+    { id: "hp", name: "체력 단련", icon: "❤️", desc: "시작 최대 HP +12 / 단계", max: 8, cost: 40 },
+    { id: "atk", name: "검술 단련", icon: "⚔️", desc: "시작 공격력 +2 / 단계", max: 8, cost: 45 },
+    { id: "gold", name: "여유 자금", icon: "🪙", desc: "시작 골드 +25 / 단계", max: 6, cost: 35 },
+    { id: "def", name: "방어 자세", icon: "🛡️", desc: "받는 피해 4% 감소 / 단계", max: 5, cost: 55 },
+    { id: "slot", name: "정신 집중", icon: "✨", desc: "시작 패시브 슬롯 +1", max: 2, cost: 120 }
+  ];
+  const PASSIVES = [
+    { id: "iron", name: "강철의 몸", icon: "🧱", desc: "최대 HP +20", cost: 50 },
+    { id: "keen", name: "예리한 검", icon: "🗡️", desc: "공격력 +4", cost: 50 },
+    { id: "crit", name: "치명타 본능", icon: "💥", desc: "치명타 확률 +12%", cost: 70 },
+    { id: "vamp", name: "흡혈 체질", icon: "🩸", desc: "기본 공격 피해의 10% 회복", cost: 80 },
+    { id: "greed", name: "탐욕", icon: "💰", desc: "골드 +30%", cost: 60 },
+    { id: "scholar", name: "학자", icon: "📚", desc: "스킬 EXP +30%", cost: 60 },
+    { id: "first", name: "선제공격", icon: "⚡", desc: "전투 시작 시 고속 1턴", cost: 90 },
+    { id: "hunter", name: "사냥꾼", icon: "🎯", desc: "레이드에서 주는 피해 +25%", cost: 85 }
+  ];
+  function trainLv(id) { return meta.train[id] | 0; }
+  function passSlots() { return 1 + trainLv("slot"); }
+  function hasPassive(id) { return selectedPassives.indexOf(id) >= 0; }
+  function bankRunGold() {
+    const gain = Math.max(8, Math.floor(gold * 0.35) + kills * 4);
+    meta.gold += gain;
+    saveMeta();
+    return gain;
+  }
+  const MONSTERS = {
+    slime: { name: "슬라임", icon: "🟢", hp: 38, atk: 6, gold: 18, exp: 28, traits: [], drops: ["gold", "exp"] },
+    wolf: { name: "늑대", icon: "🐺", hp: 40, atk: 11, gold: 12, exp: 40, traits: [], drops: ["exp"] },
+    bandit: { name: "도적", icon: "🗡️", hp: 50, atk: 9, gold: 42, exp: 26, traits: ["agile"], drops: ["gold"] },
+    bat: { name: "박쥐", icon: "🦇", hp: 34, atk: 8, gold: 10, exp: 38, traits: ["agileHigh"], drops: ["exp"] },
+    mage: { name: "마법사", icon: "🧙", hp: 36, atk: 16, gold: 18, exp: 28, skillExp: 20, traits: [], drops: ["skexp"] },
+    knight: { name: "기사", icon: "🛡️", hp: 95, atk: 11, gold: 48, exp: 34, traits: ["armored"], drops: ["gold"] },
+    golem: { name: "골렘", icon: "🪨", hp: 140, atk: 9, gold: 20, exp: 72, traits: ["armored", "undying"], drops: ["exp"] },
+    boar: { name: "멧돼지", icon: "🐗", hp: 88, atk: 10, gold: 40, exp: 36, traits: ["enrageHits"], drops: ["gold"] },
+    snake: { name: "독뱀", icon: "🐍", hp: 52, atk: 11, gold: 22, exp: 32, traits: ["toxic"], drops: ["poison"] },
+    zombie: { name: "좀비", icon: "🧟", hp: 120, atk: 8, gold: 14, exp: 48, traits: ["slowEnemy"], drops: ["exp"] },
+    fireSpirit: { name: "화염 정령", icon: "🔥", hp: 72, atk: 12, gold: 28, exp: 44, traits: ["burn", "fireResist"] },
+    iceSpirit: { name: "얼음 정령", icon: "❄️", hp: 70, atk: 11, gold: 28, exp: 44, traits: ["freeze", "fireWeak"] },
+    thunderSpirit: { name: "번개 정령", icon: "⚡", hp: 42, atk: 13, gold: 26, exp: 42, traits: ["extraHit"] },
+    vampire: { name: "흡혈귀", icon: "🧛", hp: 78, atk: 14, gold: 32, exp: 46, traits: ["vamp"] },
+    mirror: { name: "미러 몬스터", icon: "🪞", hp: 74, atk: 10, gold: 30, exp: 40, traits: ["reflect"] },
+    cursedKnight: { name: "저주받은 기사", icon: "💀", hp: 105, atk: 13, gold: 40, exp: 48, traits: ["curse", "armored"] },
+    voidMob: { name: "공허 몬스터", icon: "🟣", hp: 44, atk: 12, gold: 24, exp: 40, traits: ["strip"] },
+    goldGoblin: { name: "황금 고블린", icon: "🤑", hp: 26, atk: 5, gold: 140, exp: 12, role: "reward", traits: ["flee"] },
+    treasureGolem: { name: "보물 골렘", icon: "💎", hp: 170, atk: 7, gold: 45, exp: 28, role: "reward", rareDrop: true },
+    expSpirit: { name: "경험치 정령", icon: "⭐", hp: 30, atk: 6, gold: 8, exp: 95, role: "reward" },
+    eliteKnight: { name: "정예 기사", icon: "⚔️", hp: 150, atk: 14, gold: 70, exp: 70, role: "elite", traits: ["armoredPlus", "frenzy50"] },
+    archmage: { name: "대마법사", icon: "🧙", hp: 88, atk: 20, gold: 55, exp: 68, skillExp: 28, role: "elite", traits: ["strip"] },
+    berserker: { name: "광전사", icon: "🩸", hp: 115, atk: 12, gold: 50, exp: 66, role: "elite", traits: ["frenzy"] },
+    youngDragon: { name: "어린 드래곤", icon: "🐉", hp: 155, atk: 16, gold: 80, exp: 80, role: "elite", traits: ["burn", "extraHit"] },
+    watcher: { name: "감시자", icon: "👁️", hp: 92, atk: 8, gold: 48, exp: 60, role: "elite", traits: ["suppressCrit"] },
+    ancientDragon: { name: "고대 드래곤", icon: "🐉", hp: 240, atk: 18, gold: 160, exp: 130, skillExp: 45, role: "boss", boss: true, traits: ["burn", "aoe", "frenzy50"] },
+    swordKnight: { name: "검의 기사", icon: "⚔️", hp: 210, atk: 16, gold: 150, exp: 120, skillExp: 40, role: "boss", boss: true, traits: ["duelist", "hasteLow"] },
+    fallenMage: { name: "타락한 마법사", icon: "🧿", hp: 200, atk: 18, gold: 150, exp: 120, skillExp: 50, role: "boss", boss: true, traits: ["burn", "freeze", "extraHit", "strip"] },
+    voidLord: { name: "공허의 군주", icon: "🌑", hp: 280, atk: 20, gold: 180, exp: 150, skillExp: 55, role: "boss", boss: true, traits: ["armored", "strip", "mitigate", "frenzy30"] },
+    demonKing: { name: "마왕", icon: "👑", hp: 340, atk: 22, gold: 240, exp: 200, skillExp: 80, role: "final", boss: true, traits: ["king"] },
+    bison: { name: "들소", icon: "🦬", hp: 95, atk: 14, gold: 36, exp: 48, traits: ["enrageHits"] },
+    hawk: { name: "검독수리", icon: "🦅", hp: 58, atk: 16, gold: 28, exp: 44, traits: ["agileHigh"] },
+    bee: { name: "킬러비", icon: "🐝", hp: 42, atk: 13, gold: 22, exp: 36, traits: ["toxic", "extraHit"] },
+    lion: { name: "사자", icon: "🦁", hp: 120, atk: 18, gold: 50, exp: 62, traits: ["frenzy50", "duelist"] },
+    centaur: { name: "켄타우로스", icon: "🏹", hp: 210, atk: 20, gold: 120, exp: 110, skillExp: 35, role: "boss", boss: true, traits: ["hasteLow", "duelist", "extraHit"] },
+    cactus: { name: "선인장 골렘", icon: "🌵", hp: 110, atk: 13, gold: 34, exp: 46, traits: ["reflect", "armored"] },
+    scorpion: { name: "거대 전갈", icon: "🦂", hp: 88, atk: 17, gold: 40, exp: 52, traits: ["toxic", "agile"] },
+    mummy: { name: "미라", icon: "🧻", hp: 130, atk: 15, gold: 44, exp: 58, traits: ["curse", "undying"] },
+    sandworm: { name: "모래벌레", icon: "🪱", hp: 200, atk: 19, gold: 70, exp: 80, role: "elite", traits: ["armored", "enrageHits", "aoe"] },
+    djinn: { name: "지니", icon: "🧞", hp: 250, atk: 24, gold: 160, exp: 130, skillExp: 50, role: "boss", boss: true, traits: ["strip", "extraHit", "fireResist"] },
+    jaguar: { name: "재규어", icon: "🐆", hp: 92, atk: 19, gold: 38, exp: 54, traits: ["agileHigh", "duelist"] },
+    gorilla: { name: "고릴라", icon: "🦍", hp: 160, atk: 18, gold: 52, exp: 70, traits: ["enrageHits", "armored"] },
+    piranha: { name: "피라냐 떼", icon: "🐟", hp: 70, atk: 16, gold: 30, exp: 48, traits: ["vamp", "extraHit"] },
+    frog: { name: "독개구리", icon: "🐸", hp: 64, atk: 15, gold: 28, exp: 46, traits: ["toxic", "curse"] },
+    jungleWitch: { name: "정글 주술사", icon: "🧙", hp: 140, atk: 22, gold: 70, exp: 78, skillExp: 30, role: "elite", traits: ["curse", "strip", "toxic"] },
+    jungleKing: { name: "밀림의 왕", icon: "🐯", hp: 280, atk: 26, gold: 170, exp: 140, skillExp: 48, role: "boss", boss: true, traits: ["frenzy", "agile", "vamp"] },
+    blaze: { name: "블레이즈", icon: "🔥", hp: 96, atk: 20, gold: 42, exp: 58, traits: ["burn", "fireResist", "extraHit"] },
+    magmaCube: { name: "마그마 큐브", icon: "🟧", hp: 150, atk: 16, gold: 40, exp: 62, traits: ["armored", "burn", "fireResist"] },
+    witherSkel: { name: "위더 스켈레톤", icon: "☠️", hp: 118, atk: 21, gold: 48, exp: 66, traits: ["curse", "agile"] },
+    piglinBrute: { name: "피글린 브루트", icon: "🐷", hp: 175, atk: 23, gold: 62, exp: 80, role: "elite", traits: ["frenzy50", "armoredPlus"] },
+    ghast: { name: "가스트", icon: "👻", hp: 130, atk: 22, gold: 58, exp: 74, traits: ["aoe", "burn", "fireResist"] },
+    wither: { name: "위더", icon: "💀", hp: 340, atk: 20, gold: 200, exp: 170, skillExp: 60, role: "boss", boss: true, traits: ["curse", "aoe", "armored", "frenzy30"] },
+    enderman: { name: "엔더맨", icon: "⬛", hp: 120, atk: 22, gold: 50, exp: 70, traits: ["agileHigh", "strip"] },
+    endermite: { name: "엔더마이트", icon: "🟣", hp: 55, atk: 16, gold: 24, exp: 42, traits: ["agile", "strip"] },
+    shulker: { name: "셜커", icon: "📦", hp: 140, atk: 18, gold: 55, exp: 72, traits: ["armoredPlus", "slowEnemy"] },
+    chorusBeast: { name: "코러스 야수", icon: "🍇", hp: 165, atk: 21, gold: 64, exp: 82, role: "elite", traits: ["strip", "freeze", "vamp"] },
+    enderDragon: { name: "엔더 드래곤", icon: "🐲", hp: 400, atk: 22, gold: 240, exp: 200, skillExp: 75, role: "final", boss: true, traits: ["aoe", "extraHit", "strip", "frenzy50"] },
+    sculk: { name: "스컬크 괴물", icon: "🟦", hp: 130, atk: 20, gold: 48, exp: 68, traits: ["suppressCrit", "slowEnemy"] },
+    shrieker: { name: "스크릭", icon: "📢", hp: 100, atk: 18, gold: 44, exp: 64, traits: ["aoe", "curse"] },
+    deepKnight: { name: "심연 기사", icon: "🛡️", hp: 190, atk: 24, gold: 72, exp: 88, role: "elite", traits: ["armoredPlus", "curse"] },
+    ancientGuard: { name: "고대 수호자", icon: "🗿", hp: 220, atk: 23, gold: 80, exp: 95, role: "elite", traits: ["armored", "undying", "mitigate"] },
+    warden: { name: "워든", icon: "👹", hp: 420, atk: 18, gold: 280, exp: 240, skillExp: 90, role: "final", boss: true, traits: ["aoe", "suppressCrit", "armoredPlus", "frenzy30", "mitigate"] }
+  };
+  const TRAIT = {
+    armored: { name: "중장갑", icon: "🛡️" },
+    armoredPlus: { name: "중장갑", icon: "🛡️" },
+    agile: { name: "민첩", icon: "💨" },
+    agileHigh: { name: "민첩", icon: "💨" },
+    fireResist: { name: "화염 내성", icon: "🔥" },
+    iceResist: { name: "빙결 내성", icon: "❄️" },
+    shockResist: { name: "전기 내성", icon: "⚡" },
+    fireWeak: { name: "화염 약점", icon: "🔥" },
+    vamp: { name: "흡혈", icon: "🩸" },
+    reflect: { name: "반사", icon: "🪞" },
+    toxic: { name: "독성", icon: "☠️" },
+    undying: { name: "불굴", icon: "💀" },
+    frenzy: { name: "광폭화", icon: "👿" },
+    frenzy50: { name: "광폭화", icon: "👿" },
+    frenzy30: { name: "광폭화", icon: "👿" },
+    burn: { name: "화상", icon: "🔥" },
+    freeze: { name: "빙결", icon: "❄️" },
+    extraHit: { name: "추가타", icon: "⚡" },
+    curse: { name: "저주", icon: "💀" },
+    strip: { name: "공허", icon: "🟣" },
+    flee: { name: "도주", icon: "💨" },
+    slowEnemy: { name: "둔함", icon: "🧟" },
+    enrageHits: { name: "흥분", icon: "🐗" },
+    aoe: { name: "전체 공격", icon: "💥" },
+    suppressCrit: { name: "치명 억제", icon: "👁️" },
+    duelist: { name: "반격", icon: "⚔️" },
+    hasteLow: { name: "가속", icon: "💨" },
+    mitigate: { name: "피해 감소", icon: "🌑" },
+    king: { name: "마왕", icon: "👑" }
+  };
+  const MAX_ALLIES = 3;
+  const MIN_HIRE = 100;
+
+  const STATUS = {
+    burn: { name: "불", icon: "🔥", desc: "3턴 동안 틱당 1~3 피해" },
+    regen: { name: "재생", icon: "💚", desc: "3턴 지속 회복" },
+    slow: { name: "저속", icon: "🧊", desc: "빗맞을 확률 증가" },
+    haste: { name: "고속", icon: "💨", desc: "크리티컬 확률 증가" },
+    rage: { name: "분노", icon: "🔥", desc: "HP가 낮을수록 공격력 상승" },
+    counter: { name: "반격", icon: "🛡️", desc: "피격 시 40% 확률로 즉시 반격" },
+    poison: { name: "독", icon: "☠️", desc: "3턴 동안 틱당 1~3 피해" },
+    freeze: { name: "빙결", icon: "❄️", desc: "다음 공격 피해 감소" },
+    curse: { name: "저주", icon: "💀", desc: "회복량 감소" },
+    ironwall: { name: "철벽", icon: "🛡️", desc: "받는 피해 50% 감소" }
+  };
+  const COUNTER_CHANCE = 0.4;
+
+  const skills = [
+    { name: "검기", icon: "⚡", cost: 50, upgrade: 35, multiplier: 2.1, effect: "⚡", status: "slow", statusTo: "enemy", statusDesc: "저속", cd: 2, anim: "wave", arena: "flash", cleave: 0.6 },
+    { name: "질풍베기", icon: "🌪️", cost: 90, upgrade: 60, multiplier: 2.5, effect: "🌪️", status: "haste", statusTo: "self", statusDesc: "고속", cd: 2, anim: "storm", arena: "flash" },
+    { name: "화염참", icon: "🔥", cost: 150, upgrade: 100, multiplier: 3.3, effect: "🔥", status: "burn", statusTo: "enemy", statusDesc: "불", cd: 3, anim: "fire", arena: "flash-fire" },
+    { name: "성스러운 검", icon: "✨", cost: 230, upgrade: 150, multiplier: 2.6, heal: .25, effect: "✨", status: "regen", statusTo: "self", statusDesc: "재생", cd: 4, anim: "holy", arena: "flash-holy" },
+    { name: "파괴참", icon: "💥", cost: 350, upgrade: 220, multiplier: 4.8, effect: "💥", status: "burn", statusTo: "enemy", statusDesc: "불", cd: 5, anim: "boom", arena: "flash-fire" },
+    { name: "분노", icon: "🔥", cost: 180, upgrade: 120, multiplier: 1.6, effect: "🔥", status: "rage", statusTo: "self", statusDesc: "분노", cd: 3, anim: "rage", arena: "flash-dark" },
+    { name: "반격", icon: "🛡️", cost: 200, upgrade: 130, multiplier: 1.5, effect: "🛡️", status: "counter", statusTo: "self", statusDesc: "반격", cd: 3, anim: "guard", arena: "flash" },
+    { name: "흡혈검", icon: "🩸", cost: 160, upgrade: 110, multiplier: 2.2, effect: "🩸", lifesteal: 0.15, statusDesc: "흡혈 15%", cd: 2, anim: "drain", arena: "flash-dark" },
+    { name: "질풍참", icon: "🌪️", cost: 170, upgrade: 115, multiplier: 0.7, effect: "🌪️", hitsMin: 3, hitsMax: 4, statusDesc: "3~4연타", cd: 2, anim: "gale", arena: "shake" },
+    { name: "철벽", icon: "🛡️", cost: 140, upgrade: 90, multiplier: 1.2, effect: "🛡️", status: "ironwall", statusTo: "self", duration: 2, statusDesc: "철벽", cd: 3, anim: "guard", arena: "flash" },
+    { name: "약점 찌르기", icon: "🎯", cost: 190, upgrade: 125, multiplier: 2.4, effect: "🎯", pierce: 0.55, statusDesc: "방어 무시 55%", cd: 3, anim: "pierce", arena: "flash" }
+  ];
+
+  const shopItems = [
+    { key: "potion", name: "🧪 회복 물약", desc: "회복 물약 +1", price: 30 },
+    { key: "hastePot", name: "💨 신속 포션", desc: "고속 3턴. 사용 시 전투 EXP 3", price: 50 },
+    { key: "regenPot", name: "💚 재생 포션", desc: "재생 3턴. 사용 시 전투 EXP 3", price: 50 },
+    { key: "poisonPot", name: "☠️ 독 포션", desc: "적에게 독 3턴. 사용 시 전투 EXP 3", price: 45 },
+    { key: "atk", name: "⚔️ 공격력 강화", desc: "공격력 +3", price: 80 },
+    { key: "hp", name: "❤️ 생명력 강화", desc: "최대 HP +15", price: 100 },
+    { key: "skexp", name: "🔮 스킬 EXP", desc: "스킬 EXP +40", price: 120 },
+    { key: "sword", name: "🔨 검 강화", desc: "검 강화 +1 / 공격력 +5", price: 150 }
+  ];
+
+  let level, hp, maxHp, atk, exp, skillExp, gold, potions, hastePots, regenPots, poisonPots, sword, foe, foes;
+  let enemyIndex, enemyHP, waveNo, guarding, dead, rewardOpen, equippedSkill, kills, skillLevels, busy;
+  let allies, hireCost, skillTarget, allySeq, heroFx, enemyFx, phase, allyTurnIndex, skillCds, screenMode;
+
+  function emptyFx() { return { burn: 0, regen: 0, slow: 0, haste: 0, rage: 0, counter: 0, poison: 0, freeze: 0, curse: 0, ironwall: 0 }; }
+  function emptySkillLevels() { return skills.map(() => 0); }
+  function emptySkillCds() { return skills.map(() => 0); }
+
+  function resetState() {
+    level = 1; hp = 100; maxHp = 100; atk = 10; exp = 0; skillExp = 0;
+    gold = 100; potions = 2; hastePots = 0; regenPots = 0; poisonPots = 0; sword = 0;
+    maxHp += trainLv("hp") * 12;
+    atk += trainLv("atk") * 2;
+    gold += trainLv("gold") * 25;
+    if (hasPassive("iron")) maxHp += 20;
+    if (hasPassive("keen")) atk += 4;
+    hp = maxHp;
+    enemyIndex = 0; waveNo = 1;
+    guarding = false; dead = false; rewardOpen = false; equippedSkill = -1;
+    kills = 0; skillLevels = emptySkillLevels(); skillCds = emptySkillCds(); busy = false;
+    allies = []; hireCost = 200; skillTarget = "hero"; allySeq = 1;
+    heroFx = emptyFx(); enemyFx = emptyFx();
+    foes = []; foe = null;
+    phase = "hero"; allyTurnIndex = 0;
+    skills[0].multiplier = 2.1; skills[1].multiplier = 2.5;
+    skills[2].multiplier = 3.3; skills[3].multiplier = 2.6; skills[4].multiplier = 4.8;
+    skills[5].multiplier = 1.6; skills[6].multiplier = 1.5;
+    skills[7].multiplier = 2.2; skills[7].lifesteal = 0.15;
+    skills[8].multiplier = 0.7; skills[8].hitsMin = 3; skills[8].hitsMax = 4;
+    skills[9].multiplier = 1.2; skills[9].duration = 2;
+    skills[10].multiplier = 2.4; skills[10].pierce = 0.55;
+    spawnEnemy(true);
+  }
+
+  function currentZone() {
+    return ZONES.find((z) => z.id === selectedZone) || ZONES[0];
+  }
+  function currentStage() {
+    const list = currentZone().stages;
+    return list[Math.min(enemyIndex, list.length - 1)];
+  }
+
+  function pickArr(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function hasTrait(t, unit) {
+    const u = unit || foe;
+    return !!(u && u.traits && u.traits.indexOf(t) >= 0);
+  }
+
+  function addTrait(list, t) { if (list.indexOf(t) < 0) list.push(t); }
+
+  function pickMonsterId() {
+    const st = currentStage();
+    if (st.rare && Math.random() < 0.12) return pickArr(st.rare);
+    return pickArr(st.pool);
+  }
+
+  function maybeVariant(unit) {
+    if (unit.boss || unit.role === "reward" || unit.role === "elite") return unit;
+    const r = Math.random();
+    if (r < 0.08) {
+      unit.name = "화염 " + unit.name;
+      unit.icon = "🔥";
+      unit.hp = Math.round(unit.hp * 1.2);
+      unit.atk = Math.round(unit.atk * 1.2);
+      addTrait(unit.traits, "burn");
+      addTrait(unit.traits, "fireResist");
+      unit.variant = "fire";
+    } else if (r < 0.14) {
+      unit.name = "보물 " + unit.name;
+      unit.icon = "💎";
+      unit.hp = Math.round(unit.hp * 1.5);
+      unit.atk = Math.round(unit.atk * 0.8);
+      unit.gold *= 5;
+      unit.variant = "treasure";
+    } else if (r < 0.19) {
+      unit.name = "정예 " + unit.name;
+      unit.icon = "👑";
+      unit.hp = Math.round(unit.hp * 3);
+      unit.atk = Math.round(unit.atk * 2.5);
+      addTrait(unit.traits, "armored");
+      unit.variant = "elite";
+    }
+    return unit;
+  }
+
+  function buildFoe(id) {
+    const m = MONSTERS[id] || MONSTERS.slime;
+    const z = currentZone();
+    const n = Math.max(0, level - 1);
+    const zMul = z.diff || 1;
+    const hpMul = Math.pow(1.7, n) * zMul * 1.4;
+    const atkMul = Math.pow(1.52, n) * (0.62 + 0.38 * zMul) * 1.28;
+    const lootMul = (1 + n * 0.5) * (0.9 + zMul * 0.35);
+    return maybeVariant({
+      id,
+      name: m.name,
+      icon: m.icon,
+      role: m.role || "normal",
+      boss: !!m.boss,
+      hp: Math.round(m.hp * hpMul),
+      atk: Math.round(m.atk * atkMul),
+      gold: Math.round(m.gold * lootMul),
+      exp: Math.round(m.exp * lootMul),
+      skillExp: Math.round((m.skillExp || 0) * lootMul),
+      traits: (m.traits || []).slice(),
+      drops: m.drops || [],
+      rareDrop: !!m.rareDrop,
+      undyingUsed: false,
+      hitsTaken: 0,
+      phase: 1,
+      variant: null
+    });
+  }
+
+  function scaledEnemy() {
+    const st = currentStage();
+    if (!foe) return { name: "?", icon: "?", hp: 1, atk: 1, gold: 0, exp: 0, waves: st.waves, traits: [] };
+    return {
+      name: foe.name, icon: foe.icon, hp: foe.hp, atk: enemyAtkNow(),
+      gold: foe.gold, exp: foe.exp, waves: st.waves, traits: foe.traits
+    };
+  }
+
+  function livingFoes() { return (foes || []).filter((f) => f.hpCur > 0); }
+
+  function commitFoe() {
+    if (!foe) return;
+    foe.hpCur = enemyHP;
+    foe.fx = enemyFx;
+  }
+
+  function selectFoe(f) {
+    if (foe && f !== foe) commitFoe();
+    foe = f || null;
+    if (!foe) return;
+    enemyHP = foe.hpCur;
+    enemyFx = foe.fx;
+  }
+
+  function raidSize() {
+    const st = currentStage();
+    if (st.raid) {
+      const a = st.raid[0];
+      const b = st.raid[1] || a;
+      return a + Math.floor(Math.random() * (b - a + 1));
+    }
+    if (st.pool.some((id) => MONSTERS[id] && MONSTERS[id].boss)) return 1;
+    const chance = st.raidChance != null ? st.raidChance : (currentZone().raidChance || 0.25);
+    if (Math.random() < chance) {
+      const r = Math.random();
+      if (r < 0.35) return 2;
+      if (r < 0.85) return 3;
+      return 4;
+    }
+    return 1;
+  }
+
+  function spawnEnemy(silent) {
+    const n = raidSize();
+    foes = [];
+    foe = null;
+    for (let i = 0; i < n; i++) {
+      const f = buildFoe(pickMonsterId());
+      if (n > 1) {
+        f.hp = Math.max(8, Math.round(f.hp * 0.7));
+        f.atk = Math.max(3, Math.round(f.atk * 0.8));
+        f.gold = Math.round(f.gold * 0.7);
+        f.exp = Math.round(f.exp * 0.7);
+      }
+      f.hpCur = f.hp;
+      f.fx = emptyFx();
+      if (hasTrait("flee", f) && Math.random() < 0.3) continue;
+      foes.push(f);
+    }
+    if (!foes.length) {
+      if (!silent) log("적이 모두 도망쳤다!");
+      setTimeout(nextEnemy, 280);
+      return;
+    }
+    selectFoe(foes[0]);
+    if (hasPassive("first")) applyFx(heroFx, "haste", 1);
+    if (!silent) {
+      if (foes.length > 1) log("레이드 출현! " + foes.map((f) => f.icon + f.name).join(" · ") + " — 적을 눌러 대상을 고르자.");
+      else {
+        const tags = foeTraitText();
+        log(foe.name + " 등장!" + (tags ? " 특성: " + tags : ""));
+      }
+    }
+  }
+
+  function foeTraitText() {
+    if (!foe) return "";
+    return foe.traits.map((t) => TRAIT[t] ? TRAIT[t].icon + TRAIT[t].name : t).join(" ");
+  }
+
+  function applyFx(fx, type, turns) {
+    if (!fx || !STATUS[type]) return;
+    if (type === "freeze" && fx === enemyFx && hasTrait("iceResist") && Math.random() < 0.6) return;
+    if (turns != null) fx[type] = turns;
+    else if (type === "freeze") fx[type] = 1;
+    else if (type === "ironwall") fx[type] = 2;
+    else fx[type] = 3;
+  }
+
+  function fxText(fx) {
+    if (!fx) return "";
+    return ["burn", "regen", "slow", "haste", "rage", "counter", "poison", "freeze", "curse", "ironwall"].filter((k) => fx[k] > 0)
+      .map((k) => STATUS[k].icon + STATUS[k].name + fx[k]).join(" ") || "";
+  }
+
+  function spendBattleExp() {
+    if (exp < EFFECT_EXP) {
+      log("효과를 쓰려면 전투 EXP " + EFFECT_EXP + "이 필요하다!");
+      return false;
+    }
+    exp -= EFFECT_EXP;
+    return true;
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  function log(msg) { $("log").textContent = msg; }
+
+  function bump(el) {
+    el.style.transform = "scale(1.06)";
+    setTimeout(() => { el.style.transform = ""; }, 160);
+  }
+
+  function updateUI() {
+    $("level").textContent = "Lv." + level;
+    $("gold").textContent = gold;
+    $("shopGold").textContent = gold;
+    $("hp").textContent = hp + " / " + maxHp;
+    const shownAtk = atkWithRage(atk, hp, maxHp, heroFx);
+    $("atk").textContent = shownAtk + (sword ? "  (+검" + sword + ")" : "") + (shownAtk !== atk ? " 🔥" : "");
+    $("exp").textContent = exp + " / " + REWARD_EXP;
+    $("skillExp").textContent = skillExp;
+    $("hpBar").style.width = (hp / maxHp * 100) + "%";
+    $("expBar").style.width = (exp / REWARD_EXP * 100) + "%";
+    const E = scaledEnemy();
+    $("enemyName").textContent = E.name;
+    $("enemyTitle").textContent = (foes && foes.length > 1 ? "⚔ 레이드 x" + livingFoes().length + " · " : "") +
+      (foe && foe.boss ? "👑 " : foe && foe.role === "reward" ? "💰 " : foe && foe.role === "elite" ? "⚔️ " : "") + E.name;
+    $("enemyHPTxt").textContent = Math.max(0, enemyHP || 0) + " / " + E.hp;
+    $("enemyBar").style.width = Math.max(0, (enemyHP || 0) / E.hp * 100) + "%";
+    $("enemy").textContent = E.icon;
+    $("stageTxt").textContent = currentZone().icon + " " + currentZone().name + " · " + currentStage().name + "  ·  적 " + waveNo + "/" + currentStage().waves + (foes && foes.length > 1 ? " · RAID" : "");
+    $("enemyFxTxt").textContent = (fxText(enemyFx) + " " + foeTraitText()).trim();
+    $("heroFxTxt").textContent = fxText(heroFx);
+    $("potCount").textContent = "x" + potions;
+    $("hasteCount").textContent = "x" + hastePots;
+    $("regenCount").textContent = "x" + regenPots;
+    $("poisonCount").textContent = "x" + poisonPots;
+    $("hireCostTxt").textContent = hireCost;
+    const heroLock = dead || busy || rewardOpen || phase !== "hero";
+    $("hireBtn").disabled = heroLock || gold < hireCost || allies.length >= MAX_ALLIES;
+    allies.forEach((a) => { a.atk = atk; });
+    renderAllies();
+    renderEnemies();
+    $("player").style.left = allies.length ? "32%" : "18%";
+    renderSkills();
+    $("skillBtn").disabled = equippedSkill === -1 || heroLock || skillOnCd(equippedSkill);
+    $("skillBtn").textContent = equippedSkill < 0 ? "✨ 스킬" : (skillOnCd(equippedSkill) ? "⏳ " + skills[equippedSkill].name + " " + skillCds[equippedSkill] : "✨ " + skills[equippedSkill].name);
+    $("attackBtn").disabled = heroLock;
+    $("guardBtn").disabled = heroLock;
+    $("potionBtn").disabled = heroLock;
+    $("hastePotBtn").disabled = heroLock;
+    $("regenPotBtn").disabled = heroLock;
+    $("poisonPotBtn").disabled = heroLock;
+    $("skillManageBtn").disabled = heroLock;
+    $("shopBtn").disabled = heroLock;
+    const onAlly = phase === "ally" && !dead && !rewardOpen;
+    $("allyPanel").classList.toggle("show", onAlly);
+    $("heroPanel").style.display = onAlly ? "none" : "grid";
+    if (onAlly && allies[allyTurnIndex]) {
+      const a = allies[allyTurnIndex];
+      $("allyTurnTitle").textContent = a.name + "의 차례 — 스킬을 눌러 사용";
+      $("allyPotCount").textContent = "x" + (a.potions || 0);
+      $("allyPot").disabled = busy || !(a.potions > 0);
+      $("allyBasic").disabled = busy;
+      $("allySkillBook").disabled = busy;
+      const learned = skills.map((s, i) => {
+        if (!a.skillLevels[i]) return "";
+        const cd = skillOnCd(i, a);
+        return `<button class="btn-skill${a.equippedSkill === i ? " on" : ""}" data-ally-cast="${i}" ${busy || cd ? "disabled" : ""}>${cd ? "⏳ " + s.name + " " + a.skillCds[i] : s.icon + " " + s.name}</button>`;
+      }).join("");
+      $("allySkillRow").innerHTML = learned || `<button disabled>✨ 배운 스킬 없음 · 아래에서 선택·습득</button>`;
+    }
+  }
+
+  function renderEnemies() {
+    const layer = $("enemyLayer");
+    const pack = foes || [];
+    const n = pack.length;
+    layer.innerHTML = pack.map((f, i) => {
+      const right = n <= 1 ? 10 : 2 + i * Math.min(13, 34 / Math.max(1, n - 1));
+      const on = f === foe && f.hpCur > 0;
+      return `<div class="foe-char ${on ? "selected" : ""} ${f.hpCur <= 0 ? "dead" : ""}" id="foe${i}" data-foe="${i}" style="right:${right}%">
+        ${f.icon}<small>${f.name}<br>${Math.max(0, f.hpCur)}/${f.hp}</small>
+      </div>`;
+    }).join("");
+  }
+
+  function renderAllies() {
+    const layer = $("allyLayer");
+    layer.innerHTML = allies.map((a, i) => {
+      const left = 2 + i * 14;
+      return `<div class="ally-char ${phase === "ally" && i === allyTurnIndex ? "acting" : ""}" id="ally${i}" style="left:${left}%">
+        🧙<small>${a.name}<br>${a.hp}/${a.maxHp}<br>${fxText(a.fx)}</small>
+      </div>`;
+    }).join("");
+  }
+
+  function canAct() {
+    if (dead || busy) return false;
+    if (phase !== "hero") { log("지금은 동료의 차례다!"); return false; }
+    if (rewardOpen) { log("먼저 보상 중 하나를 선택해야 한다!"); return false; }
+    return true;
+  }
+
+  function floatText(text, cls, x, y) {
+    const d = document.createElement("div");
+    d.className = "float " + cls;
+    d.textContent = text;
+    d.style.left = x;
+    d.style.top = y;
+    $("arena").appendChild(d);
+    setTimeout(() => d.remove(), 750);
+  }
+
+  function pulseEl(el, cls) {
+    if (!el) return;
+    el.classList.remove("attackAnim", "hitAnim");
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function pulse(id) {
+    if (id === "enemy") {
+      const i = foes ? foes.indexOf(foe) : -1;
+      pulseEl(i >= 0 ? $("foe" + i) : $("enemy"), "hitAnim");
+      spawnVfx("shock", "68%", "42%");
+      burstSparks("68%", "40%", 7, "#ffd0d0");
+      return;
+    }
+    pulseEl($(id), id === "player" ? "attackAnim" : "hitAnim");
+  }
+
+  function slashFX(angle) {
+    const s = $("slash");
+    const extra = document.createElement("div");
+    extra.className = "slash play";
+    extra.style.left = (36 + Math.random() * 12) + "%";
+    extra.style.top = (40 + Math.random() * 16) + "%";
+    extra.style.transform = "rotate(" + (angle != null ? angle : -28) + "deg)";
+    $("arena").appendChild(extra);
+    s.style.left = "38%"; s.style.top = "48%";
+    s.classList.remove("play"); void s.offsetWidth; s.classList.add("play");
+    setTimeout(() => extra.remove(), 420);
+  }
+
+  function arenaFX(type) {
+    $("arena").classList.remove("shake", "flash", "flash-fire", "flash-holy", "flash-dark", "quake");
+    void $("arena").offsetWidth;
+    $("arena").classList.add(type);
+  }
+
+  function allyDamage(ally) {
+    if (attackMisses(ally.fx)) return { dmg: 0, miss: true };
+    let dmg;
+    let applied = null;
+    const base = atkWithRage(ally.atk, ally.hp, ally.maxHp, ally.fx);
+    if (ally.equippedSkill >= 0 && ally.skillLevels[ally.equippedSkill] > 0) {
+      const s = skills[ally.equippedSkill];
+      dmg = Math.round(base * s.multiplier);
+      applied = s;
+      if (Math.random() < critChance(ally.fx)) dmg *= 2;
+    } else {
+      dmg = base + Math.floor(Math.random() * 5);
+      if (Math.random() < critChance(ally.fx)) dmg *= 2;
+    }
+    return { dmg, miss: false, skill: applied };
+  }
+
+  function missChance(fx) { return fx && fx.slow > 0 ? 0.32 : 0; }
+  function critChance(fx) {
+    let c = 0.15 + (fx && fx.haste > 0 ? 0.28 : 0);
+    if (hasTrait("suppressCrit")) c = Math.max(0.02, c - 0.2);
+    if (hasTrait("duelist") && fx === enemyFx) c += 0.2;
+    if (hasPassive("crit") && fx === heroFx) c += 0.12;
+    return c;
+  }
+  function enemyDodge() {
+    let d = 0;
+    if (hasTrait("agile")) d += 0.22;
+    if (hasTrait("agileHigh")) d += 0.38;
+    return d;
+  }
+  function attackMisses(fx) {
+    return Math.random() < Math.min(0.75, missChance(fx) + (fx === heroFx || (fx && fx !== enemyFx) ? enemyDodge() : 0));
+  }
+  function atkWithRage(baseAtk, curHp, cap, fx) {
+    if (!fx || fx.rage <= 0) return baseAtk;
+    const missing = Math.max(0, 1 - curHp / Math.max(1, cap));
+    return Math.round(baseAtk * (1 + missing * 1.2));
+  }
+  function enemyHpRatio() { return foe && foe.hp ? enemyHP / foe.hp : 1; }
+  function enemyAtkNow() {
+    if (!foe) return 1;
+    let a = foe.atk;
+    if (hasTrait("enrageHits")) a += (foe.hitsTaken || 0) * 2;
+    const r = enemyHpRatio();
+    if (hasTrait("frenzy")) a = Math.round(a * (1 + (1 - r) * 1.5));
+    if (hasTrait("frenzy50") && r <= 0.5) a = Math.round(a * 1.45);
+    if (hasTrait("frenzy30") && r <= 0.3) a = Math.round(a * 1.7);
+    if (hasTrait("hasteLow") && r <= 0.5) a = Math.round(a * 1.15);
+    if (foe.id === "demonKing") {
+      if (foe.phase >= 2) a = Math.round(a * 1.35);
+      if (foe.phase >= 3) a = Math.round(a * 1.25);
+    }
+    return a;
+  }
+  function checkBossPhase() {
+    if (!foe || !foe.boss) return;
+    const r = enemyHpRatio();
+    let p = 1;
+    if (foe.id === "demonKing") {
+      if (r <= 0.25) p = 3;
+      else if (r <= 0.6) p = 2;
+    } else if ((hasTrait("frenzy50") && r <= 0.5) || (hasTrait("frenzy30") && r <= 0.3) || (hasTrait("hasteLow") && r <= 0.5)) {
+      p = 2;
+    }
+    if (p !== foe.phase) {
+      foe.phase = p;
+      log(foe.name + (p === 3 ? " 3페이즈! 광폭화 + 필살기!" : " 페이즈 전환! 힘이 폭주한다!"));
+    }
+  }
+  function modifiedHeal(amount, fx) {
+    if (fx && fx.curse > 0) return Math.floor(amount * 0.4);
+    return amount;
+  }
+  function isFireSkill(s) { return s && s.status === "burn"; }
+  function stripBuff(fx, who) {
+    const keys = ["haste", "regen", "rage", "counter", "ironwall"];
+    const have = keys.filter((k) => fx[k] > 0);
+    if (!have.length) return "";
+    const k = have[Math.floor(Math.random() * have.length)];
+    fx[k] = 0;
+    return who + "의 " + STATUS[k].name + " 소멸!";
+  }
+  function hurtEnemy(raw, ctx) {
+    ctx = ctx || {};
+    if (!foe) return { dmg: 0, reflected: 0, notes: "" };
+    let dmg = Math.max(0, Math.round(raw));
+    if (dmg <= 0) return { dmg: 0, reflected: 0, notes: "" };
+    let notes = "";
+    if (hasTrait("mitigate") && Math.random() < 0.25) {
+      dmg = Math.max(1, Math.ceil(dmg * 0.5));
+      notes += " · 피해 감소";
+    }
+    let armorMul = 1;
+    if (hasTrait("armored")) armorMul *= 0.8;
+    if (hasTrait("armoredPlus")) armorMul *= 0.7;
+    if (foe.id === "demonKing" && foe.phase >= 2) armorMul *= 0.85;
+    if (ctx.pierce) armorMul = 1 - (1 - armorMul) * (1 - Math.min(1, ctx.pierce));
+    let mul = armorMul;
+    if (ctx.fire && hasTrait("fireResist")) mul *= 0.5;
+    if (ctx.fire && hasTrait("fireWeak")) mul *= 1.4;
+    dmg = Math.max(1, Math.round(dmg * mul));
+    if (hasPassive("hunter") && foes && foes.length > 1) dmg = Math.max(1, Math.round(dmg * 1.25));
+    if (hasTrait("undying") && !foe.undyingUsed && enemyHP - dmg <= 0) {
+      dmg = Math.max(0, enemyHP - 1);
+      foe.undyingUsed = true;
+      notes += " · 불굴";
+      log(foe.name + "의 불굴! 1 HP로 버텼다!");
+    }
+    enemyHP -= dmg;
+    foe.hpCur = enemyHP;
+    if (hasTrait("enrageHits")) foe.hitsTaken = (foe.hitsTaken || 0) + 1;
+    checkBossPhase();
+    let reflected = 0;
+    if (hasTrait("reflect") && dmg > 0) {
+      reflected = Math.max(1, Math.round(dmg * (0.2 + Math.random() * 0.1)));
+      if (ctx.from === "hero") {
+        hp = Math.max(0, hp - reflected);
+        floatText("-" + reflected, "dmg", "20%", "42%");
+      } else if (ctx.fromAlly) {
+        ctx.fromAlly.hp -= reflected;
+        floatText("-" + reflected, "dmg", "12%", "42%");
+      }
+      notes += " · 반사 " + reflected;
+    }
+    if (hasTrait("duelist") && enemyHP > 0 && Math.random() < 0.35) {
+      const c = Math.max(1, Math.round(enemyAtkNow() * 0.7));
+      if (ctx.from === "hero") {
+        hp = Math.max(0, hp - c);
+        floatText("-" + c, "dmg", "22%", "48%");
+      } else if (ctx.fromAlly) {
+        ctx.fromAlly.hp -= c;
+      }
+      notes += " · 적 반격 " + c;
+      tone(200, 0.08, "square", 0.04);
+    }
+    return { dmg, reflected, notes };
+  }
+
+  function applySkillStatus(s, fromAlly) {
+    if (!s || !s.status) return "";
+    if (s.statusTo === "enemy") {
+      applyFx(enemyFx, s.status, s.duration);
+      return " · 적에게 " + STATUS[s.status].name;
+    }
+    applyFx(fromAlly ? fromAlly.fx : heroFx, s.status, s.duration);
+    return " · " + STATUS[s.status].name + " 획득";
+  }
+
+  function tickFx() {
+    const notes = [];
+    function tick(fx, name, hurt, heal, owner) {
+      if (fx.burn > 0) {
+        let d = 1 + Math.floor(Math.random() * 3);
+        if (owner && hasTrait("fireResist", owner)) d = 1;
+        if (fx.ironwall > 0) d = Math.max(1, Math.ceil(d * 0.5));
+        hurt(d);
+        notes.push(name + " 화상 -" + d);
+        fx.burn--;
+      }
+      if (fx.poison > 0) {
+        let d = 1 + Math.floor(Math.random() * 3);
+        if (fx.ironwall > 0) d = Math.max(1, Math.ceil(d * 0.5));
+        hurt(d);
+        notes.push(name + " 중독 -" + d);
+        fx.poison--;
+      }
+      if (fx.regen > 0) {
+        const h = modifiedHeal(8 + level, fx);
+        heal(h);
+        notes.push(name + " 재생 +" + h);
+        fx.regen--;
+      }
+      if (fx.slow > 0) fx.slow--;
+      if (fx.haste > 0) fx.haste--;
+      if (fx.rage > 0) fx.rage--;
+      if (fx.counter > 0) fx.counter--;
+      if (fx.freeze > 0) fx.freeze--;
+      if (fx.curse > 0) fx.curse--;
+      if (fx.ironwall > 0) fx.ironwall--;
+    }
+    tick(heroFx, "주인공", (d) => { hp = Math.max(0, hp - d); floatText("-" + d, "dmg", "20%", "30%"); }, (h) => { hp = Math.min(maxHp, hp + h); floatText("+" + h, "heal", "20%", "30%"); }, null);
+    (foes || []).forEach((f, i) => {
+      if (f.hpCur <= 0) return;
+      tick(f.fx, f.name, (d) => {
+        f.hpCur = Math.max(0, f.hpCur - d);
+        if (f === foe) enemyHP = f.hpCur;
+        floatText("-" + d, "dmg", (62 + i * 6) + "%", "28%");
+      }, (h) => {
+        f.hpCur = Math.min(f.hp, f.hpCur + h);
+        if (f === foe) enemyHP = f.hpCur;
+        floatText("+" + h, "heal", (62 + i * 6) + "%", "28%");
+      }, f);
+    });
+    if (foe) { enemyHP = foe.hpCur; enemyFx = foe.fx; }
+    allies.slice().forEach((a) => {
+      tick(a.fx, a.name, (d) => { a.hp -= d; }, (h) => { a.hp = Math.min(a.maxHp, a.hp + h); });
+      if (a.hp <= 0) {
+        notes.push(a.name + "이(가) 쓰러졌다! 고용 비용 -100G");
+        allies = allies.filter((x) => x !== a);
+        hireCost = Math.max(MIN_HIRE, hireCost - 100);
+      }
+    });
+    if (notes.length) log(notes.join("  /  "));
+    if (hp <= 0) { hp = 0; die(); return true; }
+    return false;
+  }
+
+  function incomingReduce(dmg, fx) {
+    if (fx && fx.ironwall > 0) dmg = Math.max(1, Math.ceil(dmg * 0.5));
+    if (fx === heroFx && trainLv("def")) dmg = Math.max(1, Math.round(dmg * (1 - 0.04 * trainLv("def"))));
+    return dmg;
+  }
+
+  function skillHint(s) {
+    let t = "";
+    if (s.cleave) t = "⚡검기파 광역";
+    else if (s.lifesteal) t = "🩸흡혈 " + Math.round(s.lifesteal * 100) + "%";
+    else if (s.hitsMin) t = "🌪️" + s.hitsMin + "~" + s.hitsMax + "연타";
+    else if (s.pierce) t = "🎯방어무시 " + Math.round(s.pierce * 100) + "%";
+    else if (s.status && STATUS[s.status]) t = STATUS[s.status].icon + s.statusDesc;
+    else t = s.statusDesc || "";
+    if (s.cd) t += " · 쿨 " + s.cd + "턴";
+    return t;
+  }
+
+  function tickSkillCds() {
+    skillCds = (skillCds || emptySkillCds()).map((c) => Math.max(0, c - 1));
+    allies.forEach((a) => {
+      a.skillCds = (a.skillCds || emptySkillCds()).map((c) => Math.max(0, c - 1));
+    });
+  }
+
+  function skillOnCd(i, ally) {
+    const cds = ally ? (ally.skillCds || emptySkillCds()) : (skillCds || emptySkillCds());
+    return (cds[i] || 0) > 0;
+  }
+
+  function startSkillCd(i, ally) {
+    const n = skills[i].cd || 0;
+    if (ally) {
+      if (!ally.skillCds) ally.skillCds = emptySkillCds();
+      ally.skillCds[i] = n;
+    } else {
+      if (!skillCds) skillCds = emptySkillCds();
+      skillCds[i] = n;
+    }
+  }
+
+  function spawnVfx(cls, x, y, vars) {
+    const layer = $("fxLayer");
+    if (!layer) return;
+    const d = document.createElement("div");
+    d.className = "vfx " + cls;
+    d.style.left = x;
+    d.style.top = y;
+    if (vars) {
+      Object.keys(vars).forEach((k) => d.style.setProperty(k, vars[k]));
+    }
+    layer.appendChild(d);
+    setTimeout(() => d.remove(), 750);
+  }
+
+  function burstSparks(x, y, n, color) {
+    for (let i = 0; i < n; i++) {
+      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.5;
+      const dist = 28 + Math.random() * 70;
+      spawnVfx("spark", x, y, {
+        "--dx": Math.cos(ang) * dist + "px",
+        "--dy": Math.sin(ang) * dist + "px",
+        "--spark": color || "#9ad0ff"
+      });
+    }
+  }
+
+  function burstEmbers(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      spawnVfx("ember", x, y, {
+        "--dx": (Math.random() * 80 - 40) + "px",
+        "--dy": (-30 - Math.random() * 80) + "px"
+      });
+    }
+  }
+
+  function playSkillAnim(s) {
+    const fx = $("skillFX");
+    fx.textContent = s.effect;
+    fx.className = "skillFX play sk-" + (s.anim || "wave");
+    const a = s.anim;
+    if (a === "boom") arenaFX("quake");
+    else arenaFX(s.arena || "flash");
+    spawnVfx("shock", "62%", "42%", { "--ring": "#fff" });
+    spawnVfx("ring", "58%", "40%", { "--ring": a === "fire" || a === "boom" ? "#ff6a3a" : a === "holy" ? "#ffe58a" : "#9ad0ff" });
+    if (a === "gale" || a === "storm") {
+      burstSparks("55%", "42%", 14, "#d7f4ff");
+      for (let i = 0; i < 4; i++) setTimeout(() => slashFX(i * 18 - 20), 50 + i * 90);
+    } else if (a === "wave" || a === "pierce") {
+      burstSparks("60%", "42%", 10, "#9ad0ff");
+      slashFX(-28);
+      setTimeout(() => slashFX(18), 80);
+    } else if (a === "fire" || a === "boom") {
+      burstEmbers("62%", "48%", a === "boom" ? 16 : 10);
+      burstSparks("62%", "42%", a === "boom" ? 18 : 10, "#ffb347");
+    } else if (a === "holy") {
+      burstSparks("50%", "40%", 16, "#ffe58a");
+    } else if (a === "drain" || a === "rage") {
+      burstSparks("58%", "42%", 12, "#ff6b8a");
+    } else if (a === "guard") {
+      burstSparks("28%", "48%", 10, "#8ecbff");
+      spawnVfx("ring", "22%", "48%", { "--ring": "#8ecbff" });
+    } else {
+      burstSparks("55%", "42%", 8, "#c9d7ff");
+    }
+    const tones = { wave: 620, gale: 820, storm: 700, fire: 400, holy: 900, boom: 140, rage: 220, guard: 320, drain: 340, pierce: 680 };
+    tone(tones[a] || 560, a === "boom" ? 0.22 : 0.16, a === "boom" || a === "fire" ? "sawtooth" : "square", 0.07);
+    if (a === "boom") setTimeout(() => tone(90, 0.28, "triangle", 0.05), 40);
+  }
+
+  function useSkillOnEnemy(s, opts) {
+    const hits = s.hitsMin ? s.hitsMin + Math.floor(Math.random() * (s.hitsMax - s.hitsMin + 1)) : 1;
+    let freezeMul = 1;
+    if (opts.fx.freeze > 0) { freezeMul = 0.5; opts.fx.freeze = 0; }
+    const st = applySkillStatus(s, opts.fromAlly);
+    let total = 0, critAny = false, extra = st, parts = [];
+    for (let i = 0; i < hits; i++) {
+      if (hits > 1 && i > 0 && attackMisses(opts.fx)) {
+        parts.push(0);
+        extra += " · 연타 빗나감";
+        continue;
+      }
+      let dmg = Math.round(opts.atk * s.multiplier);
+      const crit = Math.random() < critChance(opts.fx);
+      if (crit) { dmg *= 2; critAny = true; }
+      dmg = Math.ceil(dmg * freezeMul);
+      const res = hurtEnemy(dmg, {
+        fire: isFireSkill(s),
+        pierce: s.pierce || 0,
+        from: opts.from,
+        fromAlly: opts.fromAlly
+      });
+      total += res.dmg;
+      parts.push(res.dmg);
+      if (res.notes) extra += res.notes;
+      if (enemyHP <= 0) break;
+      if (opts.from === "hero" && hp <= 0) break;
+      if (opts.fromAlly && opts.fromAlly.hp <= 0) break;
+    }
+    if (s.cleave && total > 0) {
+      const main = foe;
+      const splash = Math.max(1, Math.round(total * s.cleave));
+      livingFoes().filter((f) => f !== main).forEach((f) => {
+        selectFoe(f);
+        const r = hurtEnemy(splash, { from: opts.from, fromAlly: opts.fromAlly });
+        extra += " · " + f.name + " 검기파 -" + r.dmg;
+        floatText("-" + r.dmg, "dmg", "70%", "44%");
+      });
+      if (main && main.hpCur > 0) selectFoe(main);
+      else if (livingFoes()[0]) selectFoe(livingFoes()[0]);
+    }
+    let steal = 0;
+    if (s.lifesteal && total > 0) {
+      steal = modifiedHeal(Math.max(1, Math.round(total * s.lifesteal)), opts.fx);
+      if (opts.from === "hero") hp = Math.min(maxHp, hp + steal);
+      else if (opts.fromAlly) opts.fromAlly.hp = Math.min(opts.fromAlly.maxHp, opts.fromAlly.hp + steal);
+    }
+    let holy = 0;
+    if (s.heal) {
+      const cap = opts.from === "hero" ? maxHp : opts.fromAlly.maxHp;
+      holy = modifiedHeal(Math.floor(cap * s.heal), opts.fx);
+      if (opts.from === "hero") hp = Math.min(maxHp, hp + holy);
+      else opts.fromAlly.hp = Math.min(opts.fromAlly.maxHp, opts.fromAlly.hp + holy);
+    }
+    return { total, parts, steal, holy, extra, critAny, hits };
+  }
+
+  function playerAttack(kind) {
+    if (!canAct()) return;
+    if (kind === "skill") {
+      if (equippedSkill === -1) return;
+      if (skillOnCd(equippedSkill)) { log(skills[equippedSkill].name + " 쿨타임! " + skillCds[equippedSkill] + "턴 남음"); return; }
+      if (!spendBattleExp()) return;
+    }
+    busy = true; updateUI();
+    let damage = 0, crit = false, heal = 0, label, missed = false;
+
+    if (kind === "attack") {
+      if (attackMisses(heroFx)) {
+        missed = true;
+        pulse("player");
+        label = enemyDodge() > 0 && Math.random() < 0.5 ? "빗나감! 적이 피했다." : "빗나감!";
+        tone(180, 0.08, "triangle", 0.03);
+      } else {
+        damage = atkWithRage(atk, hp, maxHp, heroFx) + Math.floor(Math.random() * 6);
+        crit = Math.random() < critChance(heroFx);
+        if (crit) damage *= 2;
+        if (heroFx.freeze > 0) { damage = Math.ceil(damage * 0.5); heroFx.freeze = 0; }
+        pulse("player"); slashFX();
+        tone(crit ? 740 : 420, 0.08, "square", 0.05);
+        label = crit ? "CRITICAL! " + damage + " 피해!" : damage + " 피해!";
+      }
+    } else if (kind === "skill") {
+      const s = skills[equippedSkill];
+      const used = useSkillOnEnemy(s, {
+        atk: atkWithRage(atk, hp, maxHp, heroFx),
+        fx: heroFx,
+        from: "hero"
+      });
+      damage = used.total;
+      crit = used.critAny;
+      heal = used.steal + used.holy;
+      playSkillAnim(s);
+      pulse("player");
+      startSkillCd(equippedSkill);
+      label = s.icon + " " + s.name + "! ";
+      if (s.hitsMin) label += used.hits + "연타 합계 " + damage + " 피해";
+      else label += damage + " 피해";
+      label += " · EXP -" + EFFECT_EXP + used.extra;
+      if (used.steal) label += " · 흡혈 +" + used.steal;
+      if (used.holy) label += " · HP +" + used.holy;
+      missed = false;
+      if (hp <= 0) { log(label); busy = false; updateUI(); die(); return; }
+    }
+
+    if (!missed && kind === "attack") {
+      const res = hurtEnemy(damage, { from: "hero" });
+      damage = res.dmg;
+      label = (crit ? "CRITICAL! " : "") + damage + " 피해!" + (res.notes || "");
+      if (hasPassive("vamp") && damage > 0) {
+        const steal = Math.max(1, Math.round(damage * 0.1));
+        hp = Math.min(maxHp, hp + steal);
+        heal = steal;
+        label += " · 흡혈 +" + steal;
+      }
+      if (hp <= 0) { hp = 0; log(label); busy = false; updateUI(); die(); return; }
+    }
+
+    setTimeout(() => {
+      if (!missed) {
+        pulse("enemy");
+        arenaFX(crit ? "quake" : "shake");
+        floatText((crit ? "CRIT " : "-") + damage, crit ? "crit" : "dmg", (62 + Math.random() * 10) + "%", "38%");
+      }
+      if (heal) floatText("+" + heal, "heal", "14%", "40%");
+    }, 90);
+
+    log(label);
+
+    setTimeout(() => afterHeroAction(), kind === "skill" && skills[equippedSkill] && (skills[equippedSkill].hitsMin || skills[equippedSkill].cleave) ? 680 : 420);
+  }
+
+  function afterHeroAction() {
+    busy = false;
+    if (collectDeadFoes()) { phase = "hero"; return; }
+    beginAllyTurns();
+  }
+
+  function beginAllyTurns() {
+    if (!allies.length) {
+      enemyTurn();
+      return;
+    }
+    phase = "ally";
+    allyTurnIndex = 0;
+    log(allies[0].name + "의 차례! 기본 공격, 스킬, 물약 중 하나를 고르자.");
+    updateUI();
+  }
+
+  function nextAllyOrEnemy() {
+    if (dead) return;
+    if (collectDeadFoes()) { phase = "hero"; busy = false; return; }
+    allyTurnIndex++;
+    while (allyTurnIndex < allies.length && allies[allyTurnIndex].hp <= 0) allyTurnIndex++;
+    if (allyTurnIndex >= allies.length) {
+      phase = "hero";
+      enemyTurn();
+      return;
+    }
+    log(allies[allyTurnIndex].name + "의 차례!");
+    busy = false;
+    updateUI();
+  }
+
+  function currentAlly() {
+    return allies[allyTurnIndex];
+  }
+
+  function allyAct(kind, skillIdx) {
+    if (dead || rewardOpen || phase !== "ally" || busy) return;
+    const a = currentAlly();
+    if (!a) { nextAllyOrEnemy(); return; }
+    busy = true;
+    updateUI();
+    const idx = allyTurnIndex;
+
+    if (kind === "potion") {
+      if (!a.potions) { busy = false; log("이 동료는 회복 물약이 없다! 스킬창에서 사자."); updateUI(); return; }
+      a.potions--;
+      const h = modifiedHeal(Math.floor(a.maxHp * 0.5), a.fx);
+      a.hp = Math.min(a.maxHp, a.hp + h);
+      floatText("+" + h, "heal", (4 + idx * 14) + "%", "40%");
+      log(a.name + "이(가) 회복 물약을 마셨다! HP +" + h);
+      tone(520, 0.1, "sine", 0.04);
+      setTimeout(nextAllyOrEnemy, 380);
+      return;
+    }
+
+    if (kind === "skill") {
+      if (skillIdx != null) a.equippedSkill = skillIdx;
+      if (a.equippedSkill < 0 || a.skillLevels[a.equippedSkill] <= 0) {
+        busy = false; log("이 동료는 장착한 스킬이 없다! 스킬을 고르자."); updateUI(); return;
+      }
+      const s = skills[a.equippedSkill];
+      if (skillOnCd(a.equippedSkill, a)) {
+        busy = false; log(s.name + " 쿨타임! " + a.skillCds[a.equippedSkill] + "턴 남음"); updateUI(); return;
+      }
+      if (!spendBattleExp()) { busy = false; updateUI(); return; }
+      const used = useSkillOnEnemy(s, {
+        atk: atkWithRage(a.atk, a.hp, a.maxHp, a.fx),
+        fx: a.fx,
+        fromAlly: a
+      });
+      let dmg = used.total;
+      const crit = used.critAny;
+      if (a.hp <= 0) {
+        log(a.name + "이(가) 반사/반격에 쓰러졌다! 고용 비용 -100G");
+        allies = allies.filter((x) => x !== a);
+        hireCost = Math.max(MIN_HIRE, hireCost - 100);
+        setTimeout(nextAllyOrEnemy, 420);
+        return;
+      }
+      startSkillCd(a.equippedSkill, a);
+      if (used.steal) floatText("+" + used.steal, "heal", (4 + idx * 14) + "%", "36%");
+      pulseEl($("ally" + idx), "attackAnim");
+      playSkillAnim(s);
+      setTimeout(() => {
+        pulse("enemy");
+        floatText((crit ? "CRIT " : "-") + dmg, crit ? "crit" : "dmg", "66%", "38%");
+      }, 80);
+      log(a.name + "의 " + s.name + "! " + (s.hitsMin ? used.hits + "연타 합계 " : "") + dmg + " 피해 · EXP -" + EFFECT_EXP + used.extra + (used.steal ? " · 흡혈 +" + used.steal : ""));
+      setTimeout(nextAllyOrEnemy, s.hitsMin || s.cleave ? 680 : 480);
+      return;
+    }
+
+    if (attackMisses(a.fx)) {
+      pulseEl($("ally" + idx), "attackAnim");
+      log(a.name + "의 기본 공격이 빗나갔다!");
+      setTimeout(nextAllyOrEnemy, 380);
+      return;
+    }
+    let dmg = atkWithRage(a.atk, a.hp, a.maxHp, a.fx) + Math.floor(Math.random() * 5);
+    const crit = Math.random() < critChance(a.fx);
+    if (crit) dmg *= 2;
+    if (a.fx.freeze > 0) { dmg = Math.ceil(dmg * 0.5); a.fx.freeze = 0; }
+    const res = hurtEnemy(dmg, { fromAlly: a });
+    dmg = res.dmg;
+    if (a.hp <= 0) {
+      log(a.name + "이(가) 반사/반격에 쓰러졌다! 고용 비용 -100G");
+      allies = allies.filter((x) => x !== a);
+      hireCost = Math.max(MIN_HIRE, hireCost - 100);
+      setTimeout(nextAllyOrEnemy, 420);
+      return;
+    }
+    pulseEl($("ally" + idx), "attackAnim");
+    setTimeout(() => {
+      pulse("enemy");
+      floatText((crit ? "CRIT " : "-") + dmg, crit ? "crit" : "dmg", "66%", "38%");
+    }, 80);
+    log(a.name + " 기본 공격! " + dmg + " 피해" + (res.notes || ""));
+    tone(400, 0.08, "square", 0.04);
+    setTimeout(nextAllyOrEnemy, 420);
+  }
+
+  $("arena").addEventListener("click", (e) => {
+    const el = e.target.closest("[data-foe]");
+    if (!el || !foes) return;
+    const f = foes[+el.dataset.foe];
+    if (!f || f.hpCur <= 0) return;
+    selectFoe(f);
+    log(f.name + "을(를) 목표로 정했다!");
+    updateUI();
+  });
+
+  $("attackBtn").onclick = () => playerAttack("attack");
+  $("skillBtn").onclick = () => {
+    if (equippedSkill === -1) return;
+    playerAttack("skill");
+  };
+  $("allyBasic").onclick = () => allyAct("basic");
+  $("allyPot").onclick = () => allyAct("potion");
+  $("allySkillRow").onclick = function (e) {
+    const btn = e.target.closest("[data-ally-cast]");
+    if (!btn) return;
+    allyAct("skill", +btn.dataset.allyCast);
+  };
+  $("allySkillBook").onclick = function () {
+    if (dead || rewardOpen || busy) return;
+    skillTarget = String(allyTurnIndex);
+    renderSkillWindow();
+    $("skillModal").classList.add("show");
+  };
+
+  $("guardBtn").onclick = function () {
+    if (!canAct()) return;
+    busy = true; updateUI();
+    guarding = true;
+    $("player").classList.add("guardPose");
+    log("방어 태세!");
+    tone(240, 0.1, "triangle", 0.04);
+    setTimeout(afterHeroAction, 280);
+  };
+
+  $("potionBtn").onclick = function () {
+    if (!canAct()) return;
+    if (potions <= 0) { log("회복 물약이 없다!"); return; }
+    potions--;
+    const heal = modifiedHeal(Math.floor(maxHp * .5), heroFx);
+    hp = Math.min(maxHp, hp + heal);
+    floatText("+" + heal, "heal", "16%", "42%");
+    log("회복 물약! HP +" + heal);
+    tone(520, 0.12, "sine", 0.05);
+    bump($("hp"));
+    updateUI();
+  };
+
+  $("hastePotBtn").onclick = function () {
+    if (!canAct()) return;
+    if (hastePots <= 0) { log("신속 포션이 없다!"); return; }
+    if (!spendBattleExp()) return;
+    hastePots--;
+    applyFx(heroFx, "haste");
+    log("신속 포션! 고속 3턴 · 전투 EXP -" + EFFECT_EXP);
+    tone(640, 0.12, "sine", 0.05);
+    updateUI();
+  };
+
+  $("regenPotBtn").onclick = function () {
+    if (!canAct()) return;
+    if (regenPots <= 0) { log("재생 포션이 없다!"); return; }
+    if (!spendBattleExp()) return;
+    regenPots--;
+    applyFx(heroFx, "regen");
+    log("재생 포션! 재생 3턴 · 전투 EXP -" + EFFECT_EXP);
+    tone(580, 0.12, "sine", 0.05);
+    updateUI();
+  };
+
+  $("poisonPotBtn").onclick = function () {
+    if (!canAct()) return;
+    if (poisonPots <= 0) { log("독 포션이 없다!"); return; }
+    if (!spendBattleExp()) return;
+    poisonPots--;
+    applyFx(enemyFx, "poison");
+    log("독 포션! 적에게 독 3턴 · 전투 EXP -" + EFFECT_EXP);
+    tone(360, 0.12, "sawtooth", 0.05);
+    updateUI();
+  };
+
+  function finishEnemyRound() {
+    guarding = false;
+    tickSkillCds();
+    if (tickFx()) return;
+    if (collectDeadFoes()) { phase = "hero"; busy = false; return; }
+    phase = "hero";
+    busy = false;
+    updateUI();
+  }
+
+  function tryCounter(name, fx, baseAtk, curHp, cap, pulseTarget, fromAlly) {
+    if (curHp <= 0 || !fx || fx.counter <= 0) return false;
+    if (Math.random() >= COUNTER_CHANCE) return false;
+    let dmg = atkWithRage(baseAtk, curHp, cap, fx) + Math.floor(Math.random() * 5);
+    const crit = Math.random() < critChance(fx);
+    if (crit) dmg *= 2;
+    const res = hurtEnemy(dmg, fromAlly ? { fromAlly } : { from: "hero" });
+    dmg = res.dmg;
+    pulseEl(pulseTarget, "attackAnim");
+    setTimeout(() => {
+      pulse("enemy");
+      floatText((crit ? "CRIT " : "-") + dmg, crit ? "crit" : "dmg", "66%", "36%");
+    }, 70);
+    log(name + " 반격! " + dmg + " 피해");
+    tone(620, 0.1, "square", 0.05);
+    return true;
+  }
+
+  function extraHitChance() {
+    if (!foe) return 0;
+    let c = 0;
+    if (hasTrait("extraHit")) c = 0.4;
+    if (hasTrait("hasteLow") && enemyHpRatio() <= 0.5) c = Math.max(c, 0.45);
+    if (foe.id === "demonKing" && foe.phase >= 3) c = 0.55;
+    return c;
+  }
+
+  function wantAoe() {
+    if (!foe) return false;
+    if (hasTrait("aoe") && Math.random() < 0.32) return true;
+    if (foe.id === "demonKing" && foe.phase >= 3 && Math.random() < 0.5) return true;
+    if (foe.id === "demonKing" && foe.phase >= 2 && Math.random() < 0.22) return true;
+    return false;
+  }
+
+  function onHitFx(targetFx, who) {
+    if (hasTrait("burn")) applyFx(targetFx, "burn");
+    if (hasTrait("toxic") && Math.random() < 0.45) applyFx(targetFx, "poison");
+    if (hasTrait("freeze") && Math.random() < 0.4) applyFx(targetFx, "freeze");
+    if (hasTrait("curse") && Math.random() < 0.4) applyFx(targetFx, "curse");
+    if (hasTrait("strip") && Math.random() < 0.4) {
+      const msg = stripBuff(targetFx, who);
+      if (msg) log(msg);
+    }
+  }
+
+  function vampFrom(dmg) {
+    if (!hasTrait("vamp") || dmg <= 0) return;
+    const h = Math.max(1, Math.round(dmg * 0.35));
+    enemyHP = Math.min(foe.hp, enemyHP + h);
+    foe.hpCur = enemyHP;
+    floatText("+" + h, "heal", "70%", "30%");
+  }
+
+  function enemySwing(isExtra, done) {
+    if (dead || enemyHP <= 0) { done(); return; }
+    const E = scaledEnemy();
+    const missP = Math.min(0.7, missChance(enemyFx) + (hasTrait("slowEnemy") ? 0.28 : 0));
+    if (Math.random() < missP) {
+      log(E.name + "의 " + (isExtra ? "추가 공격이" : "공격이") + " 빗나갔다!");
+      maybeExtra(isExtra, done);
+      return;
+    }
+    let damage = enemyAtkNow() + Math.floor(Math.random() * 4);
+    if (Math.random() < critChance(enemyFx)) damage *= 2;
+    if (foe.id === "demonKing" && foe.phase >= 3 && Math.random() < 0.4) {
+      damage = Math.round(damage * 1.6);
+      log(E.name + "의 필살기!");
+    }
+    const aoe = wantAoe();
+    let countered = false;
+
+    function hitHero(dmg, label) {
+      if (guarding) dmg = Math.ceil(dmg / 2);
+      dmg = incomingReduce(dmg, heroFx);
+      hp -= dmg;
+      onHitFx(heroFx, "주인공");
+      vampFrom(dmg);
+      pulse("player");
+      arenaFX("shake");
+      floatText("-" + dmg, "dmg", "22%", "36%");
+      tone(140, 0.12, "sawtooth", 0.05);
+      log(label + dmg);
+      if (hp <= 0) { hp = 0; busy = false; updateUI(); die(); return true; }
+      countered = tryCounter("주인공", heroFx, atk, hp, maxHp, $("player")) || countered;
+      return false;
+    }
+
+    if (aoe) {
+      log(E.name + "의 전체 공격!");
+      allies.slice().forEach((a, i) => {
+        const ad = incomingReduce(damage, a.fx);
+        a.hp -= ad;
+        onHitFx(a.fx, a.name);
+        pulseEl($("ally" + i), "hitAnim");
+        floatText("-" + ad, "dmg", (4 + i * 12) + "%", "42%");
+        if (a.hp <= 0) {
+          log(a.name + "이(가) 쓰러졌다! 고용 비용 -100G");
+          allies = allies.filter((x) => x !== a);
+          hireCost = Math.max(MIN_HIRE, hireCost - 100);
+        }
+      });
+      vampFrom(damage);
+      if (hitHero(damage, E.name + " 전체 공격 피해 ")) return;
+    } else {
+      const living = allies.slice();
+      const hitAlly = living.length && Math.random() < 0.55;
+      if (hitAlly) {
+        const i = Math.floor(Math.random() * living.length);
+        const a = living[i];
+        damage = incomingReduce(damage, a.fx);
+        a.hp -= damage;
+        onHitFx(a.fx, a.name);
+        vampFrom(damage);
+        pulseEl($("ally" + allies.indexOf(a)), "hitAnim");
+        floatText("-" + damage, "dmg", (4 + i * 12) + "%", "42%");
+        tone(160, 0.1, "sawtooth", 0.04);
+        if (a.hp <= 0) {
+          log(a.name + "이(가) 쓰러졌다! 고용 비용 -100G");
+          allies = allies.filter((x) => x !== a);
+          hireCost = Math.max(MIN_HIRE, hireCost - 100);
+        } else {
+          log(E.name + "이(가) " + a.name + "을(를) 공격! " + damage + " 피해");
+          countered = tryCounter(a.name, a.fx, a.atk, a.hp, a.maxHp, $("ally" + allies.indexOf(a)), a);
+        }
+      } else if (hitHero(Math.ceil(damage), E.name + (guarding ? "이(가) 주인공을 공격! 방어로 " : "이(가) 주인공을 공격! "))) {
+        return;
+      }
+    }
+    if (countered) setTimeout(() => maybeExtra(isExtra, done), 400);
+    else maybeExtra(isExtra, done);
+  }
+
+  function maybeExtra(isExtra, done) {
+    if (dead || enemyHP <= 0) { done(); return; }
+    if (!isExtra && Math.random() < extraHitChance()) {
+      log(foe.name + " 추가 공격!");
+      setTimeout(() => enemySwing(true, done), 280);
+      return;
+    }
+    done();
+  }
+
+  function enemyTurn() {
+    if (dead) { busy = false; phase = "hero"; return; }
+    busy = true;
+    phase = "hero";
+    updateUI();
+    $("player").classList.remove("guardPose");
+    const pack = livingFoes().slice();
+    let i = 0;
+    function runNext() {
+      if (dead) return;
+      if (i >= pack.length || !livingFoes().length) {
+        finishEnemyRound();
+        return;
+      }
+      const unit = pack[i++];
+      if (!unit || unit.hpCur <= 0) { runNext(); return; }
+      selectFoe(unit);
+      updateUI();
+      const fi = foes.indexOf(unit);
+      pulseEl($("foe" + fi), "attackAnim");
+      setTimeout(() => enemySwing(false, runNext), 160);
+    }
+    runNext();
+  }
+
+  function applyFoeLoot(f) {
+    if (!f || f.looted) return;
+    f.looted = true;
+    kills++;
+    let g = f.gold;
+    let se = f.skillExp || 0;
+    if (hasPassive("greed")) g = Math.round(g * 1.3);
+    if (hasPassive("scholar")) se = Math.round(se * 1.3);
+    gold += g;
+    exp += f.exp;
+    const bits = ["+" + f.exp + " EXP", "+" + g + " G"];
+    if (se) { skillExp += se; bits.push("스킬 EXP +" + se); }
+    if (f.drops && f.drops.indexOf("poison") >= 0 && Math.random() < 0.55) {
+      poisonPots++;
+      bits.push("독 포션 +1");
+    }
+    if (f.rareDrop && Math.random() < 0.6) {
+      const g = 80 + Math.floor(Math.random() * 40);
+      gold += g;
+      skillExp += 25;
+      potions++;
+      bits.push("희귀 드랍");
+    }
+    floatText("+" + g + "G", "gold", "70%", "28%");
+    log(f.name + " 처치! " + bits.join(" / "));
+    tone(880, 0.18, "triangle", 0.05);
+    bump($("gold"));
+  }
+
+  function collectDeadFoes() {
+    commitFoe();
+    (foes || []).forEach((f) => {
+      if (f.hpCur <= 0) applyFoeLoot(f);
+    });
+    const rest = livingFoes();
+    if (rest.length) {
+      if (!foe || foe.hpCur <= 0) selectFoe(rest[0]);
+      updateUI();
+      return false;
+    }
+    phase = "hero";
+    busy = false;
+    if (exp >= REWARD_EXP) {
+      exp -= REWARD_EXP;
+      openReward();
+      updateUI();
+      return true;
+    }
+    nextEnemy();
+    updateUI();
+    return true;
+  }
+
+  function openReward() {
+    rewardOpen = true;
+    $("rewardModal").classList.add("show");
+    log("성장 보상이 도착했다!");
+    updateUI();
+  }
+
+  $("goldReward").onclick = function () {
+    if (!rewardOpen) return;
+    gold += 50;
+    closeReward();
+    log("보상 선택: 골드 +50!");
+    floatText("+50G", "gold", "48%", "30%");
+  };
+  $("skillReward").onclick = function () {
+    if (!rewardOpen) return;
+    skillExp += 50;
+    closeReward();
+    log("보상 선택: 스킬 EXP +50!");
+  };
+  function closeReward() {
+    rewardOpen = false;
+    $("rewardModal").classList.remove("show");
+    nextEnemy();
+    updateUI();
+  }
+
+  function nextEnemy() {
+    const st = currentStage();
+    if (waveNo < st.waves) {
+      waveNo++;
+      spawnEnemy();
+      return;
+    }
+    waveNo = 1;
+    const list = currentZone().stages;
+    if (enemyIndex < list.length - 1) {
+      enemyIndex++;
+      spawnEnemy();
+    } else {
+      enemyIndex = 0;
+      level++;
+      maxHp += 12;
+      hp = Math.min(maxHp, hp + 20);
+      atk += 3;
+      spawnEnemy();
+      log(currentZone().name + " 순환 클리어! Lv." + level);
+      tone(660, 0.25, "sine", 0.06);
+    }
+  }
+
+  function skillCostFor(levels, i) {
+    const s = skills[i];
+    const lv = levels[i];
+    return lv === 0 ? s.cost : s.upgrade * (lv + 1);
+  }
+
+  function skillCost(i) {
+    return skillCostFor(skillLevels, i);
+  }
+
+  function currentKitFor(target) {
+    if (target === "hero") {
+      return { levels: skillLevels, equipped: equippedSkill, setEquipped(v) { equippedSkill = v; } };
+    }
+    const a = allies[+target];
+    if (!a) return currentKitFor("hero");
+    return { levels: a.skillLevels, equipped: a.equippedSkill, setEquipped(v) { a.equippedSkill = v; } };
+  }
+  function currentKit() {
+    const kit = currentKitFor(skillTarget);
+    if (skillTarget !== "hero" && !allies[+skillTarget]) skillTarget = "hero";
+    return kit;
+  }
+  function stripTargetId() {
+    return (phase === "ally" && allies[allyTurnIndex]) ? String(allyTurnIndex) : "hero";
+  }
+
+  function renderSkillTabs() {
+    const tabs = $("skillTabs");
+    const items = [{ id: "hero", label: "주인공" }].concat(
+      allies.map((a, i) => ({ id: String(i), label: a.name }))
+    );
+    tabs.innerHTML = items.map((t) =>
+      `<button class="${skillTarget === t.id ? "on" : ""}" data-tab="${t.id}">${t.label}</button>`
+    ).join("");
+  }
+
+  function renderSkills() {
+    const kit = currentKitFor(stripTargetId());
+    $("skillList").innerHTML = skills.map((s, i) => {
+      const lv = kit.levels[i];
+      const cost = skillCostFor(kit.levels, i);
+      return `<div class="card ${lv === 0 ? "locked" : ""} ${kit.equipped === i ? "equipped" : ""}">
+        <div class="cardTitle">${s.icon} ${s.name}${phase === "ally" ? " · 동료" : ""}</div>
+        <div class="cardInfo">${lv === 0 ? "미습득" : "Lv." + lv} · 배율 ×${s.multiplier.toFixed(1)} · 효과 ${skillHint(s)} · 사용 EXP ${EFFECT_EXP} · 🔮 ${cost}</div>
+        <button data-learn="${i}">${lv === 0 ? "습득" : kit.equipped === i ? "장착 중" : "장착"}</button>
+        ${lv > 0 ? `<button data-up="${i}">강화</button>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  function renderSkillWindow() {
+    renderSkillTabs();
+    const kit = currentKit();
+    $("skillWindowList").innerHTML = skills.map((s, i) => {
+      const lv = kit.levels[i];
+      const cost = skillCostFor(kit.levels, i);
+      return `<div class="shop-item">
+        <div><b>${s.icon} ${s.name}</b><div class="cardInfo">${lv === 0 ? "아직 배우지 않음" : "Lv." + lv} · ${skillHint(s)} · 🔮 ${cost}</div></div>
+        <div>
+          <button data-learn="${i}">${lv === 0 ? "습득" : kit.equipped === i ? "장착 중" : "장착"}</button>
+          ${lv > 0 ? `<button data-up="${i}">강화</button>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+    if (skillTarget !== "hero") {
+      const a = allies[+skillTarget];
+      if (a) {
+        $("skillWindowList").insertAdjacentHTML("afterbegin", `<div class="shop-item">
+        <div><b>🧪 회복 물약</b><div class="cardInfo">이 동료만 사용. 보유 ${a.potions || 0}개 · 사용 시 HP 50% 회복</div></div>
+        <button data-ally-pot="${skillTarget}">🪙 30 G</button>
+      </div>`);
+      }
+    }
+  }
+
+  function learnOrEquip(i) {
+    if (dead || rewardOpen) return;
+    const kit = currentKit();
+    const s = skills[i];
+    if (kit.levels[i] === 0) {
+      if (skillExp < s.cost) { log("스킬 EXP가 부족하다!"); return; }
+      skillExp -= s.cost;
+      kit.levels[i] = 1;
+      log(s.name + " 습득!");
+      tone(700, 0.12, "sine", 0.05);
+    }
+    kit.setEquipped(i);
+    log(s.name + " 장착!");
+    updateUI();
+    if ($("skillModal").classList.contains("show")) renderSkillWindow();
+  }
+
+  function upgradeSkill(i) {
+    if (dead || rewardOpen) return;
+    const kit = currentKit();
+    const s = skills[i];
+    const cost = skillCostFor(kit.levels, i);
+    if (kit.levels[i] === 0) return;
+    if (skillExp < cost) { log("스킬 EXP가 부족하다!"); return; }
+    skillExp -= cost;
+    kit.levels[i]++;
+    if (s.lifesteal) {
+      s.lifesteal = Math.min(0.45, Math.round((s.lifesteal + 0.05) * 100) / 100);
+      log(s.name + " 강화! 흡혈 " + Math.round(s.lifesteal * 100) + "%");
+    } else if (s.hitsMax) {
+      s.hitsMax = Math.min(5, s.hitsMax + 1);
+      log(s.name + " 강화! " + s.hitsMin + "~" + s.hitsMax + "연타");
+    } else if (s.duration) {
+      s.duration += 1;
+      log(s.name + " 강화! 철벽 " + s.duration + "턴");
+    } else if (s.pierce) {
+      s.pierce = Math.min(1, Math.round((s.pierce + 0.1) * 100) / 100);
+      log(s.name + " 강화! 방어 무시 " + Math.round(s.pierce * 100) + "%");
+    } else {
+      s.multiplier += .35;
+      log(s.name + " 강화! Lv." + kit.levels[i]);
+    }
+    updateUI();
+    if ($("skillModal").classList.contains("show")) renderSkillWindow();
+  }
+
+  document.body.addEventListener("click", (e) => {
+    const tab = e.target.closest("[data-tab]");
+    if (tab) {
+      skillTarget = tab.dataset.tab;
+      renderSkillWindow();
+      return;
+    }
+    const allyPot = e.target.closest("[data-ally-pot]");
+    if (allyPot) {
+      const a = allies[+allyPot.dataset.allyPot];
+      if (!a) return;
+      if (gold < 30) { log("골드가 부족하다!"); return; }
+      gold -= 30;
+      a.potions = (a.potions || 0) + 1;
+      log(a.name + "의 회복 물약 +1 · 보유 " + a.potions);
+      tone(480, 0.1, "triangle", 0.04);
+      updateUI();
+      renderSkillWindow();
+      return;
+    }
+    const learn = e.target.closest("[data-learn]");
+    const up = e.target.closest("[data-up]");
+    if (learn) {
+      if (!$("skillModal").classList.contains("show")) skillTarget = stripTargetId();
+      learnOrEquip(+learn.dataset.learn);
+    }
+    if (up) {
+      if (!$("skillModal").classList.contains("show")) skillTarget = stripTargetId();
+      upgradeSkill(+up.dataset.up);
+    }
+  });
+
+  $("skillManageBtn").onclick = () => {
+    if (dead || rewardOpen) return;
+    skillTarget = "hero";
+    renderSkillWindow();
+    $("skillModal").classList.add("show");
+  };
+  $("closeSkill").onclick = () => $("skillModal").classList.remove("show");
+
+  function hireAlly() {
+    if (dead || rewardOpen || busy) return;
+    if (allies.length >= MAX_ALLIES) { log("동료는 최대 " + MAX_ALLIES + "명이다."); return; }
+    if (gold < hireCost) { log("골드가 부족하다! 고용에 " + hireCost + "G 필요"); return; }
+    gold -= hireCost;
+    hireCost += 100;
+    allies.push({
+      name: "동료 " + allySeq,
+      hp: maxHp,
+      maxHp: maxHp,
+      atk: atk,
+      skillLevels: emptySkillLevels(),
+      equippedSkill: -1,
+      potions: 0,
+      skillCds: emptySkillCds(),
+      fx: emptyFx()
+    });
+    allySeq++;
+    log("동료 검사를 고용했다! 다음 고용 " + hireCost + "G");
+    tone(500, 0.14, "triangle", 0.05);
+    updateUI();
+    if ($("shopModal").classList.contains("show")) renderShop();
+  }
+
+  $("hireBtn").onclick = hireAlly;
+
+  function renderShop() {
+    $("shopGold").textContent = gold;
+    $("shopList").innerHTML = shopItems.map((item, i) => `
+      <div class="shop-item">
+        <div><b>${item.name}</b><div class="cardInfo">${item.desc}</div></div>
+        <button data-buy="${i}">🪙 ${item.price} G</button>
+      </div>`).join("") + `
+      <div class="shop-item">
+        <div><b>🤝 동료 검사 고용</b><div class="cardInfo">같은 검사. 스킬은 따로 구매. 현재 ${hireCost}G · ${allies.length}/${MAX_ALLIES}명</div></div>
+        <button id="shopHire">🪙 ${hireCost} G</button>
+      </div>`;
+    const sh = $("shopHire");
+    if (sh) sh.onclick = hireAlly;
+  }
+  $("shopBtn").onclick = () => {
+    if (dead || rewardOpen) return;
+    renderShop();
+    $("shopModal").classList.add("show");
+  };
+  $("closeShop").onclick = () => $("shopModal").classList.remove("show");
+
+  document.body.addEventListener("click", (e) => {
+    const buy = e.target.closest("[data-buy]");
+    if (!buy) return;
+    const i = +buy.dataset.buy;
+    const item = shopItems[i];
+    if (gold < item.price) { log("골드가 부족하다!"); return; }
+    gold -= item.price;
+    if (item.key === "potion") potions++;
+    if (item.key === "hastePot") hastePots++;
+    if (item.key === "regenPot") regenPots++;
+    if (item.key === "poisonPot") poisonPots++;
+    if (item.key === "atk") atk += 3;
+    if (item.key === "hp") { maxHp += 15; hp = maxHp; }
+    if (item.key === "skexp") skillExp += 40;
+    if (item.key === "sword") { sword++; atk += 5; }
+    log(item.name + " 구매!");
+    tone(480, 0.1, "triangle", 0.04);
+    updateUI();
+    renderShop();
+  });
+
+  function showScreen(name) {
+    if (!currentUser && name !== "auth") name = "auth";
+    screenMode = name;
+    $("authScreen").classList.toggle("hidden", name !== "auth");
+    $("menuScreen").classList.toggle("hidden", name !== "menu");
+    $("trainScreen").classList.toggle("hidden", name !== "train");
+    $("passiveScreen").classList.toggle("hidden", name !== "pass");
+    $("app").classList.toggle("hidden", name !== "game");
+    if (name === "menu") refreshMenuGold();
+    if (name === "train") renderTrain();
+    if (name === "pass") renderPassPick();
+  }
+  function refreshMenuGold() {
+    $("menuMetaGold").textContent = meta.gold;
+    $("menuUserName").textContent = currentUser || "-";
+  }
+  function loadUsers() {
+    try { return JSON.parse(localStorage.getItem(USERS_KEY) || "{}") || {}; }
+    catch { return {}; }
+  }
+  function saveUsers(users) { try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch {} }
+  function bytesToHex(buf) { return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join(""); }
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return bytesToHex(buf);
+  }
+  function randomSalt() {
+    const a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    return bytesToHex(a);
+  }
+  function validId(id) { return /^[a-zA-Z0-9가-힣_]{3,16}$/.test(id); }
+  function setAuthMode(mode) {
+    authMode = mode;
+    const signup = mode === "signup";
+    $("authSub").textContent = signup ? "아이디와 비밀번호를 정해 회원가입하세요." : "아이디와 비밀번호로 로그인하세요.";
+    $("authSubmit").textContent = signup ? "회원가입" : "로그인";
+    $("authSwitchTxt").textContent = signup ? "이미 계정이 있나요?" : "계정이 없나요?";
+    $("authToggle").textContent = signup ? "로그인" : "회원가입";
+    $("authPw2").classList.toggle("hidden", !signup);
+    $("authPw").setAttribute("autocomplete", signup ? "new-password" : "current-password");
+    $("authMsg").textContent = "";
+    $("authMsg").classList.remove("ok");
+  }
+  function enterGame(id) {
+    currentUser = id;
+    try { localStorage.setItem(SESSION_KEY, id); } catch {}
+    meta = loadMeta();
+    showScreen("menu");
+  }
+  function logout() {
+    currentUser = null;
+    try { localStorage.removeItem(SESSION_KEY); } catch {}
+    meta = defaultMeta();
+    $("authId").value = "";
+    $("authPw").value = "";
+    $("authPw2").value = "";
+    setAuthMode("login");
+    showScreen("auth");
+  }
+  async function submitAuth(e) {
+    e.preventDefault();
+    const id = ($("authId").value || "").trim();
+    const pw = $("authPw").value || "";
+    const pw2 = $("authPw2").value || "";
+    $("authMsg").classList.remove("ok");
+    if (!validId(id)) { $("authMsg").textContent = "아이디는 3~16자, 한글/영문/숫자/_ 만 가능"; return; }
+    if (pw.length < 4) { $("authMsg").textContent = "비밀번호는 4자 이상"; return; }
+    const users = loadUsers();
+    if (authMode === "signup") {
+      if (pw !== pw2) { $("authMsg").textContent = "비밀번호 확인이 다르다"; return; }
+      if (users[id]) { $("authMsg").textContent = "이미 있는 아이디다"; return; }
+      const salt = randomSalt();
+      users[id] = { salt: salt, hash: await sha256(salt + pw) };
+      saveUsers(users);
+      $("authMsg").classList.add("ok");
+      $("authMsg").textContent = "가입 완료. 입장한다.";
+      enterGame(id);
+      return;
+    }
+    const rec = users[id];
+    if (!rec || rec.hash !== await sha256(rec.salt + pw)) {
+      $("authMsg").textContent = "아이디 또는 비밀번호가 틀렸다";
+      return;
+    }
+    enterGame(id);
+  }
+
+  $("authForm").onsubmit = submitAuth;
+  $("authToggle").onclick = function () { setAuthMode(authMode === "login" ? "signup" : "login"); };
+  $("logoutBtn").onclick = logout;
+  function trainCost(t) {
+    return t.cost + trainLv(t.id) * Math.round(t.cost * 0.45);
+  }
+  function renderTrain() {
+    $("trainGold").textContent = meta.gold;
+    $("trainUpList").innerHTML = TRAIN.map((t) => {
+      const lv = trainLv(t.id);
+      const maxed = lv >= t.max;
+      const c = trainCost(t);
+      return '<div class="pass-item' + (maxed ? " locked" : "") + '" data-train="' + t.id + '"><div><b>' + t.icon + " " + t.name + '</b><div style="color:var(--dim);font-size:13px">' + t.desc + " · Lv." + lv + "/" + t.max + "</div></div><b>" + (maxed ? "MAX" : c + " G") + "</b></div>";
+    }).join("");
+    $("trainPassList").innerHTML = PASSIVES.map((p) => {
+      const on = meta.unlocked.indexOf(p.id) >= 0;
+      return '<div class="pass-item' + (on ? " on" : "") + '" data-unlock="' + p.id + '"><div><b>' + p.icon + " " + p.name + '</b><div style="color:var(--dim);font-size:13px">' + p.desc + "</div></div><b>" + (on ? "해금됨" : p.cost + " G") + "</b></div>";
+    }).join("");
+  }
+  function renderPassPick() {
+    $("passSlotTxt").textContent = selectedPassives.length + "/" + passSlots();
+    $("zonePickList").innerHTML = ZONES.map((z) => {
+      const on = selectedZone === z.id;
+      return '<div class="pass-item' + (on ? " on" : "") + '" data-zone="' + z.id + '"><div><b>' + z.icon + " " + z.name + '</b><div class="cardInfo">' + z.desc + '</div><div class="stars">' + z.stars + "</div></div><b>×" + z.diff.toFixed(1) + "</b></div>";
+    }).join("");
+    $("passPickList").innerHTML = PASSIVES.map((p) => {
+      const unlocked = meta.unlocked.indexOf(p.id) >= 0;
+      const on = hasPassive(p.id);
+      const cls = "pass-item" + (on ? " on" : "") + (unlocked ? "" : " locked");
+      return '<div class="' + cls + '" data-pass="' + p.id + '"><div><b>' + p.icon + " " + p.name + '</b><div style="color:var(--dim);font-size:13px">' + (unlocked ? p.desc : "훈련장에서 해금") + "</div></div><b>" + (unlocked ? (on ? "장착" : "선택") : "잠김") + "</b></div>";
+    }).join("");
+  }
+  function startRun() {
+    resetState();
+    $("gameOverModal").classList.remove("show");
+    $("log").innerHTML = "";
+    showScreen("game");
+    const names = selectedPassives.map((id) => {
+      const p = PASSIVES.find((x) => x.id === id);
+      return p ? p.icon + p.name : id;
+    });
+    const z = currentZone();
+    log(z.icon + z.name + " 모험 시작. 난이도 ×" + z.diff.toFixed(1) + " · 패시브: " + (names.length ? names.join(" · ") : "없음"));
+    updateUI();
+  }
+
+  $("menuStart").onclick = function () { showScreen("pass"); };
+  $("menuTrain").onclick = function () { showScreen("train"); };
+  $("trainBack").onclick = function () { showScreen("menu"); };
+  $("passBack").onclick = function () { showScreen("menu"); };
+  $("passConfirm").onclick = startRun;
+  $("quitBtn").onclick = function () {
+    if (busy && !dead) return;
+    $("skillModal").classList.remove("show");
+    $("shopModal").classList.remove("show");
+    $("gameOverModal").classList.remove("show");
+    showScreen("menu");
+  };
+  $("trainUpList").onclick = function (e) {
+    const row = e.target.closest("[data-train]");
+    if (!row) return;
+    const t = TRAIN.find((x) => x.id === row.getAttribute("data-train"));
+    if (!t) return;
+    const lv = trainLv(t.id);
+    if (lv >= t.max) return;
+    const c = trainCost(t);
+    if (meta.gold < c) { return; }
+    meta.gold -= c;
+    meta.train[t.id] = lv + 1;
+    saveMeta();
+    renderTrain();
+  };
+  $("trainPassList").onclick = function (e) {
+    const row = e.target.closest("[data-unlock]");
+    if (!row) return;
+    const id = row.getAttribute("data-unlock");
+    const p = PASSIVES.find((x) => x.id === id);
+    if (!p || meta.unlocked.indexOf(id) >= 0) return;
+    if (meta.gold < p.cost) return;
+    meta.gold -= p.cost;
+    meta.unlocked.push(id);
+    saveMeta();
+    renderTrain();
+  };
+  $("zonePickList").onclick = function (e) {
+    const row = e.target.closest("[data-zone]");
+    if (!row) return;
+    selectedZone = row.getAttribute("data-zone");
+    renderPassPick();
+  };
+  $("passPickList").onclick = function (e) {
+    const row = e.target.closest("[data-pass]");
+    if (!row) return;
+    const id = row.getAttribute("data-pass");
+    if (meta.unlocked.indexOf(id) < 0) return;
+    const i = selectedPassives.indexOf(id);
+    if (i >= 0) selectedPassives.splice(i, 1);
+    else if (selectedPassives.length < passSlots()) selectedPassives.push(id);
+    renderPassPick();
+  };
+
+  function die() {
+    dead = true; rewardOpen = false; busy = false;
+    $("rewardModal").classList.remove("show");
+    const gain = bankRunGold();
+    $("deathRecord").textContent = currentZone().icon + currentZone().name + " · Lv." + level + " · 처치 " + kills + " · 동료 " + allies.length + " · 검 +" + sword;
+    $("deathMeta").textContent = "훈련 자금 +" + gain + "  (보유 " + meta.gold + ")";
+    $("gameOverModal").classList.add("show");
+    log("검사가 쓰러졌다. 훈련 자금 +" + gain);
+    tone(90, 0.5, "sine", 0.06);
+    updateUI();
+  }
+
+  $("restartBtn").onclick = function () {
+    startRun();
+  };
+  $("toMenuBtn").onclick = function () {
+    $("gameOverModal").classList.remove("show");
+    showScreen("menu");
+  };
+
+  addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    if (screenMode !== "game") return;
+    if (e.key === "1") $("attackBtn").click();
+    if (e.key === "2") $("guardBtn").click();
+    if (e.key === "3") $("skillBtn").click();
+    if (e.key === "4") $("potionBtn").click();
+    if (e.key === "Escape") {
+      $("skillModal").classList.remove("show");
+      $("shopModal").classList.remove("show");
+    }
+  });
+
+  const saved = (function () { try { return localStorage.getItem(SESSION_KEY); } catch { return null; } })();
+  if (saved && loadUsers()[saved]) enterGame(saved);
+  else showScreen("auth");
+})();
+</script>
+</body>
+</html>
