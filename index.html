@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>1커브 (1_curve)</title>
-<style>
-:root {
+  <style>
+    :root {
   --bg: #070b12;
   --panel: rgba(16, 22, 34, .78);
   --line: rgba(120, 150, 200, .22);
@@ -19,7 +19,7 @@
   --glow: 0 0 28px rgba(90, 130, 255, .28);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body {
+    html, body {
   margin: 0; min-height: 100%;
   background: var(--bg); color: var(--text);
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", Segoe UI, sans-serif;
@@ -180,7 +180,7 @@ body::before {
   min-width: 120px; justify-content: center;
 }
 
-.stats {
+    .stats {
   display: grid; grid-template-columns: repeat(5, 1fr);
   gap: 8px; padding: 8px; border-radius: 16px;
 }
@@ -193,7 +193,7 @@ body::before {
 }
 .bar > div { display: block; height: 100%; width: 0; border-radius: 20px; transition: width .35s ease; }
 .hpbar { background: linear-gradient(90deg, #1fa86a, var(--hp)); box-shadow: 0 0 10px rgba(62,226,154,.5); }
-.expbar { background: linear-gradient(90deg, #6b40d6, var(--exp)); }
+    .tickbar { background: linear-gradient(90deg, #e6b92e, #ff8a3d); }
 .enemybar { background: linear-gradient(90deg, #c62828, var(--danger)); }
 
 .arena-wrap { position: relative; }
@@ -613,7 +613,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   z-index: 5;
   pointer-events: auto;
 }
-.gameover { text-align: center; }
+.update-list { text-align: left; line-height: 1.7; color: var(--text); margin: 8px 0 14px; font-size: 15px; }
 .gameover .skull { font-size: 72px; }
 .gameover h1 { color: var(--danger); margin: 8px 0; font-size: 40px; }
 
@@ -638,8 +638,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   .actions { grid-template-columns: repeat(2, 1fr); }
   .arena { height: 240px; }
   .character { font-size: 58px; }
-}
-</style>
+    }
+  </style>
 </head>
 <body>
 <canvas id="stars"></canvas>
@@ -660,10 +660,10 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     <div class="auth-switch">
       <span id="authSwitchTxt">계정이 없나요?</span>
       <button type="button" id="authToggle">회원가입</button>
-    </div>
+      </div>
     <div class="menu-version">1_CURVE · v1.0</div>
-  </div>
-</div>
+    </div>
+      </div>
 
 <div id="menuScreen" class="screen hidden">
   <div class="menu-card menu-hero">
@@ -679,40 +679,40 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       <div class="menu-info"><b>⚔️ 성장</b><span>검 · 스킬 · 패시브</span></div>
       <div class="menu-info"><b>👹 전투</b><span>몬스터 · 레이드 · 보스</span></div>
       <div class="menu-info"><b>🏆 도전</b><span>강화 · 기록 · 빌드</span></div>
-    </div>
+  </div>
 
     <div class="menu-btns">
       <button id="menuStart">⚔️ 모험 시작</button>
       <button id="menuTrain">🏟️ 훈련장</button>
-    </div>
+  </div>
 
     <div class="menu-gold">훈련 자금 🪙 <span id="menuMetaGold">0</span></div>
     <div class="menu-user">검사 <b id="menuUserName">-</b> <button type="button" id="logoutBtn">로그아웃</button></div>
     <div class="menu-version">1_CURVE · v1.0</div>
   </div>
-</div>
+  </div>
 
 <div id="trainScreen" class="screen hidden">
   <div class="menu-card">
     <div class="screen-top">
       <div class="menu-kicker" style="text-align:left;letter-spacing:.2em">TRAINING GROUND</div>
       <button id="trainBack" style="width:auto;padding:8px 14px">← 메뉴</button>
-    </div>
+  </div>
     <div class="menu-title" style="font-size:32px;text-align:left">훈련장</div>
     <div class="menu-sub" style="text-align:left">모험에서 번 훈련 자금으로 강화하고 패시브를 해금한다.<br>보유 🪙 <b id="trainGold">0</b></div>
     <div class="menu-kicker" style="text-align:left;margin:8px 0">단련</div>
     <div id="trainUpList" class="pass-grid"></div>
     <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">패시브 해금</div>
     <div id="trainPassList" class="pass-grid"></div>
+    </div>
   </div>
-</div>
 
 <div id="passiveScreen" class="screen hidden">
   <div class="menu-card">
     <div class="screen-top">
       <div class="menu-kicker" style="text-align:left;letter-spacing:.2em">LOADOUT</div>
       <button id="passBack" style="width:auto;padding:8px 14px">← 메뉴</button>
-    </div>
+  </div>
     <div class="menu-title" style="font-size:32px;text-align:left">모험 준비</div>
     <div class="menu-sub" style="text-align:left">출발 구역을 고르자. 쉬운 곳은 건너뛰어도 되고, 고대도시는 끝이다.<br>🪙450을 모으면 고른 곳부터 다음 구역으로 이어진다.</div>
     <div class="menu-kicker" style="text-align:left;margin:8px 0">출발 구역</div>
@@ -723,14 +723,14 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       <button id="passConfirm">⚔️ 이 빌드로 출발</button>
     </div>
   </div>
-</div>
+    </div>
 
 <div id="app" class="hidden">
   <header class="header">
     <div>
       <div class="kicker">1_CURVE</div>
       <div class="title">1커브</div>
-    </div>
+  </div>
     <div class="gold-chip">🪙 <span id="gold">100</span> G</div>
     <button id="quitBtn" style="width:auto;padding:8px 12px;font-size:13px">메뉴</button>
   </header>
@@ -745,8 +745,12 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     <div class="stat">
       <small>전투 EXP</small><b id="exp">0 / 100</b>
       <div class="bar"><div class="expbar" id="expBar"></div></div>
-    </div>
+  </div>
     <div class="stat"><small>스킬 EXP</small><b id="skillExp">0</b></div>
+    <div class="stat" id="tickStat" style="display:none">
+      <small>제한 틱</small><b id="tickTxt">100 / 100</b>
+      <div class="bar"><div class="tickbar" id="tickBar"></div></div>
+    </div>
   </section>
 
   <div class="arena-wrap">
@@ -759,12 +763,12 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
           <div class="stage" id="stageTxt">STAGE 1 · 숲의 입구</div>
           <b id="enemyTitle">숲의 슬라임</b>
           <div class="fx-row" id="enemyFxTxt"></div>
-        </div>
+    </div>
         <div style="min-width:140px;text-align:right">
           <small id="enemyHPTxt">40 / 40</small>
           <div class="bar"><div class="enemybar" id="enemyBar"></div></div>
-        </div>
-      </div>
+  </div>
+    </div>
       <div class="character player" id="player">🧙</div>
       <div id="allyLayer"></div>
       <div id="enemyLayer"></div>
@@ -774,7 +778,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       <div class="skillFX" id="skillFX">⚔️</div>
       <div class="slash" id="slash"></div>
       <div id="fxLayer"></div>
-    </div>
+  </div>
   </div>
 
   <div class="log"><span class="dot"></span><span id="log">모험을 시작했다. 슬라임을 처치하라.</span></div>
@@ -834,6 +838,15 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   </div>
 </div>
 
+<div class="modal" id="updateModal">
+  <div class="modalBox">
+    <div class="modalTitle">업데이트</div>
+    <div class="modalDesc">그동안 못 본 변경을 한 번에 정리했다.</div>
+    <div id="updateList" class="update-list"></div>
+    <button id="ackUpdateBtn" class="modal-close">확인</button>
+  </div>
+</div>
+
 <div class="modal" id="endingModal">
   <div class="modalBox gameover">
     <div class="skull">👑</div>
@@ -875,8 +888,18 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       ]
     },
     {
+      id: "grove", name: "작은 숲", icon: "🌿", diff: 0.62, raidChance: 0.1, stars: "☆★",
+      desc: "예전 숲 난이도를 조금 낮춘 구간. 연습장 다음 단계.",
+      stages: [
+        { name: "작은 숲 입구", waves: 4, pool: ["slime", "wolf", "bat"], rare: ["expSpirit"] },
+        { name: "얕은 수풀", waves: 3, pool: ["wolf", "boar", "slime"], rare: ["goldGoblin"] },
+        { name: "오솔길", waves: 3, pool: ["bandit", "bat", "snake"] },
+        { name: "낡은 폐허", waves: 2, pool: ["zombie", "knight", "slime"] }
+      ]
+    },
+    {
       id: "forest", name: "숲", icon: "🌲", diff: 1.2, raidChance: 0.22, stars: "★",
-      desc: "입문 지대. 연습장보다 확실히 세다.",
+      desc: "본격 숲. 작은 숲보다 적이 단단하다.",
       stages: [
         { name: "숲의 입구", waves: 5, pool: ["slime", "wolf", "bat"], rare: ["goldGoblin", "expSpirit"] },
         { name: "붉은 수풀", waves: 4, pool: ["wolf", "boar", "snake", "fireSpirit"], rare: ["treasureGolem"] },
@@ -961,8 +984,33 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       ]
     }
   ];
-  const STORY = ["forest", "plain", "desert", "jungle", "nether", "ender", "ancient"];
+  const STORY = ["grove", "forest", "plain", "desert", "jungle", "nether", "ender", "ancient"];
   const TRAVEL_GOLD = 450;
+  const STAGE_TICKS = 100;
+  const DOJO_SHOP_MAX = 3;
+  const UPDATE_LOG = [
+    {
+      id: 1,
+      items: [
+        { kind: "map", name: "연습장" },
+        { kind: "map", name: "작은 숲" }
+      ]
+    },
+    {
+      id: 2,
+      items: [
+        { kind: "map", name: "초원" },
+        { kind: "map", name: "사막" },
+        { kind: "map", name: "정글" },
+        { kind: "map", name: "지옥" },
+        { kind: "map", name: "엔더" },
+        { kind: "map", name: "고대도시" }
+      ]
+    }
+  ];
+  function latestUpdateId() {
+    return UPDATE_LOG.length ? UPDATE_LOG[UPDATE_LOG.length - 1].id : 0;
+  }
 
   const starCanvas = document.getElementById("stars");
   const sctx = starCanvas.getContext("2d");
@@ -1024,14 +1072,15 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   let selectedPassives = [];
   let selectedZone = "forest";
   function defaultMeta() {
-    return { gold: 80, train: {}, unlocked: ["iron", "keen"] };
+    return { gold: 80, train: {}, unlocked: ["iron", "keen"], lastUpdateId: 0 };
   }
   function parseMeta(m) {
     if (!m) return defaultMeta();
     return {
       gold: Math.max(0, m.gold | 0),
       train: m.train && typeof m.train === "object" ? m.train : {},
-      unlocked: Array.isArray(m.unlocked) ? m.unlocked : ["iron", "keen"]
+      unlocked: Array.isArray(m.unlocked) ? m.unlocked : ["iron", "keen"],
+      lastUpdateId: m.lastUpdateId | 0
     };
   }
   function loadLocalMeta() {
@@ -1049,7 +1098,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         username: currentUser,
         gold: meta.gold,
         train: meta.train,
-        unlocked: meta.unlocked
+        unlocked: meta.unlocked,
+        lastUpdateId: meta.lastUpdateId | 0
       }, { merge: true }).catch(function () {});
     }
   }
@@ -1059,7 +1109,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       const snap = await fbDb.collection("players").doc(currentUid).get();
       if (!snap.exists) {
         const m = loadLocalMeta();
-        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked });
+        m.lastUpdateId = latestUpdateId();
+        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked, lastUpdateId: m.lastUpdateId });
         return m;
       }
       return parseMeta(snap.data());
@@ -1238,6 +1289,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   let hp, maxHp, atk, exp, skillExp, gold, potions, hastePots, regenPots, poisonPots, sword, foe, foes;
   let enemyIndex, enemyHP, waveNo, guarding, dead, rewardOpen, equippedSkill, kills, skillLevels, busy;
   let allies, hireCost, skillTarget, allySeq, heroFx, enemyFx, phase, allyTurnIndex, skillCds, screenMode;
+  let stageTicks, shopBuys;
 
   function emptyFx() { return { burn: 0, regen: 0, slow: 0, haste: 0, rage: 0, counter: 0, poison: 0, freeze: 0, curse: 0, ironwall: 0 }; }
   function emptySkillLevels() { return skills.map(() => 0); }
@@ -1259,6 +1311,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     heroFx = emptyFx(); enemyFx = emptyFx();
     foes = []; foe = null;
     phase = "hero"; allyTurnIndex = 0;
+    shopBuys = 0; stageTicks = STAGE_TICKS;
     skills[0].multiplier = 2.1; skills[1].multiplier = 2.5;
     skills[2].multiplier = 3.3; skills[3].multiplier = 2.6; skills[4].multiplier = 4.8;
     skills[5].multiplier = 1.6; skills[6].multiplier = 1.5;
@@ -1272,8 +1325,9 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   function currentZone() {
     return ZONES.find((z) => z.id === selectedZone) || ZONES[0];
   }
+  function inDojo() { return currentZone().id === "dojo"; }
   function nextStoryZone() {
-    if (selectedZone === "dojo") return ZONES.find((z) => z.id === "forest");
+    if (selectedZone === "dojo") return ZONES.find((z) => z.id === "grove") || ZONES.find((z) => z.id === "forest");
     const i = STORY.indexOf(selectedZone);
     if (i < 0 || i >= STORY.length - 1) return null;
     return ZONES.find((z) => z.id === STORY[i + 1]);
@@ -1288,10 +1342,37 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     selectedZone = nxt.id;
     enemyIndex = 0;
     waveNo = 1;
+    stageTicks = STAGE_TICKS;
     spawnEnemy();
     log(nxt.icon + nxt.name + "으로 이동했다! 여행 비용 -" + TRAVEL_GOLD + "G");
     tone(620, 0.2, "sine", 0.05);
     updateUI();
+  }
+  function tryDojoAdvance() {
+    if (!inDojo() || dead || gold < TRAVEL_GOLD) return false;
+    const nxt = nextStoryZone();
+    if (!nxt) return false;
+    gold -= TRAVEL_GOLD;
+    selectedZone = nxt.id;
+    enemyIndex = 0;
+    waveNo = 1;
+    shopBuys = 0;
+    stageTicks = STAGE_TICKS;
+    spawnEnemy();
+    log("연습장 졸업! " + nxt.icon + nxt.name + "으로 이동했다. -" + TRAVEL_GOLD + "G");
+    tone(620, 0.2, "sine", 0.05);
+    updateUI();
+    return true;
+  }
+  function consumeStageTick() {
+    if (!inDojo() || dead) return false;
+    stageTicks = Math.max(0, (stageTicks | 0) - 1);
+    if (stageTicks <= 0) {
+      log("제한 틱을 다 썼다. 탈락!");
+      die("시간 초과");
+      return true;
+    }
+    return false;
   }
   function winEnding() {
     dead = true; busy = false; rewardOpen = false;
@@ -1505,6 +1586,12 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("atk").textContent = shownAtk + (sword ? "  (+검" + sword + ")" : "") + (shownAtk !== atk ? " 🔥" : "");
     $("exp").textContent = exp + " / " + REWARD_EXP;
     $("skillExp").textContent = skillExp;
+    const showTick = inDojo();
+    $("tickStat").style.display = showTick ? "" : "none";
+    if (showTick) {
+      $("tickTxt").textContent = stageTicks + " / " + STAGE_TICKS;
+      $("tickBar").style.width = Math.max(0, stageTicks / STAGE_TICKS * 100) + "%";
+    }
     $("hpBar").style.width = (hp / maxHp * 100) + "%";
     $("expBar").style.width = (exp / REWARD_EXP * 100) + "%";
     const E = scaledEnemy();
@@ -1523,7 +1610,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("poisonCount").textContent = "x" + poisonPots;
     $("hireCostTxt").textContent = hireCost;
     const heroLock = dead || busy || rewardOpen || phase !== "hero";
-    $("hireBtn").disabled = heroLock || gold < hireCost || allies.length >= MAX_ALLIES;
+    $("hireBtn").disabled = heroLock || inDojo() || gold < hireCost || allies.length >= MAX_ALLIES;
+    $("hireBtn").style.display = inDojo() ? "none" : "";
     allies.forEach((a) => { a.atk = atk; });
     renderAllies();
     renderEnemies();
@@ -1540,7 +1628,10 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("skillManageBtn").disabled = heroLock;
     $("shopBtn").disabled = heroLock;
     const nxt = nextStoryZone();
-    if (!nxt) {
+    if (inDojo()) {
+      $("travelBtn").textContent = "450G 모으면 자동 이동";
+      $("travelBtn").disabled = true;
+    } else if (!nxt) {
       $("travelBtn").textContent = "최종 구역";
       $("travelBtn").disabled = true;
     } else {
@@ -2094,6 +2185,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   }
 
   function afterHeroAction() {
+    if (consumeStageTick()) return;
     busy = false;
     if (collectDeadFoes()) { phase = "hero"; return; }
     beginAllyTurns();
@@ -2264,6 +2356,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     log("회복 물약! HP +" + heal);
     tone(520, 0.12, "sine", 0.05);
     bump($("hp"));
+    if (consumeStageTick()) return;
     updateUI();
   };
 
@@ -2275,6 +2368,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     applyFx(heroFx, "haste");
     log("신속 포션! 고속 3턴 · 전투 EXP -" + EFFECT_EXP);
     tone(640, 0.12, "sine", 0.05);
+    if (consumeStageTick()) return;
     updateUI();
   };
 
@@ -2286,6 +2380,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     applyFx(heroFx, "regen");
     log("재생 포션! 재생 3턴 · 전투 EXP -" + EFFECT_EXP);
     tone(580, 0.12, "sine", 0.05);
+    if (consumeStageTick()) return;
     updateUI();
   };
 
@@ -2297,6 +2392,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     applyFx(enemyFx, "poison");
     log("독 포션! 적에게 독 3턴 · 전투 EXP -" + EFFECT_EXP);
     tone(360, 0.12, "sawtooth", 0.05);
+    if (consumeStageTick()) return;
     updateUI();
   };
 
@@ -2520,6 +2616,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     }
     phase = "hero";
     busy = false;
+    if (tryDojoAdvance()) return true;
     if (exp >= REWARD_EXP) {
       exp -= REWARD_EXP;
       openReward();
@@ -2541,6 +2638,13 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   $("goldReward").onclick = function () {
     if (!rewardOpen) return;
     gold += 50;
+    if (tryDojoAdvance()) {
+      rewardOpen = false;
+      $("rewardModal").classList.remove("show");
+      log("보상 선택: 골드 +50! 연습장을 졸업한다.");
+      floatText("+50G", "gold", "48%", "30%");
+      return;
+    }
     closeReward();
     log("보상 선택: 골드 +50!");
     floatText("+50G", "gold", "48%", "30%");
@@ -2570,6 +2674,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     const list = z.stages;
     if (enemyIndex < list.length - 1) {
       enemyIndex++;
+      stageTicks = STAGE_TICKS;
       spawnEnemy();
       return;
     }
@@ -2578,6 +2683,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       return;
     }
     enemyIndex = 0;
+    stageTicks = STAGE_TICKS;
     spawnEnemy();
     const nxt = nextStoryZone();
     log(z.name + "을(를) 한 바퀴 돌았다. " + (nxt ? "🪙" + TRAVEL_GOLD + "을 모아 " + nxt.name + "으로 가자." : ""));
@@ -2747,6 +2853,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   $("closeSkill").onclick = () => $("skillModal").classList.remove("show");
 
   function hireAlly() {
+    if (inDojo()) { log("연습장에서는 고용할 수 없다."); return; }
     if (dead || rewardOpen || busy) return;
     if (allies.length >= MAX_ALLIES) { log("동료는 최대 " + MAX_ALLIES + "명이다."); return; }
     if (gold < hireCost) { log("골드가 부족하다! 고용에 " + hireCost + "G 필요"); return; }
@@ -2774,15 +2881,17 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 
   function renderShop() {
     $("shopGold").textContent = gold;
-    $("shopList").innerHTML = shopItems.map((item, i) => `
-      <div class="shop-item">
-        <div><b>${item.name}</b><div class="cardInfo">${item.desc}</div></div>
-        <button data-buy="${i}">🪙 ${item.price} G</button>
-      </div>`).join("") + `
+    const left = inDojo() ? Math.max(0, DOJO_SHOP_MAX - (shopBuys | 0)) : 99;
+    const hireHtml = inDojo() ? `<div class="shop-item"><div><b>🤝 고용 불가</b><div class="cardInfo">연습장에서는 동료를 고용할 수 없다. 구매 ${shopBuys | 0}/${DOJO_SHOP_MAX}</div></div></div>` : `
       <div class="shop-item">
         <div><b>🤝 동료 검사 고용</b><div class="cardInfo">같은 검사. 스킬은 따로 구매. 현재 ${hireCost}G · ${allies.length}/${MAX_ALLIES}명</div></div>
         <button id="shopHire">🪙 ${hireCost} G</button>
       </div>`;
+    $("shopList").innerHTML = shopItems.map((item, i) => `
+      <div class="shop-item">
+        <div><b>${item.name}</b><div class="cardInfo">${item.desc}</div></div>
+        <button data-buy="${i}" ${inDojo() && left <= 0 ? "disabled" : ""}>🪙 ${item.price} G</button>
+      </div>`).join("") + hireHtml;
     const sh = $("shopHire");
     if (sh) sh.onclick = hireAlly;
   }
@@ -2798,8 +2907,10 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     if (!buy) return;
     const i = +buy.dataset.buy;
     const item = shopItems[i];
+    if (inDojo() && (shopBuys | 0) >= DOJO_SHOP_MAX) { log("연습장 구매는 " + DOJO_SHOP_MAX + "개까지다."); return; }
     if (gold < item.price) { log("골드가 부족하다!"); return; }
     gold -= item.price;
+    if (inDojo()) shopBuys = (shopBuys | 0) + 1;
     if (item.key === "potion") potions++;
     if (item.key === "hastePot") hastePots++;
     if (item.key === "regenPot") regenPots++;
@@ -2812,6 +2923,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     tone(480, 0.1, "triangle", 0.04);
     updateUI();
     renderShop();
+    tryDojoAdvance();
   });
 
   function showScreen(name) {
@@ -2867,6 +2979,37 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     meta = await loadCloudMeta();
     saveMeta();
     showScreen("menu");
+    showMissedUpdates();
+  }
+  function formatUpdateItem(it) {
+    if (it.kind === "skill") return "스킬이 추가되었습니다.(" + it.name + ")";
+    if (it.kind === "map") return "맵이 추가되었습니다.(" + it.name + ")";
+    return it.text || "";
+  }
+  function missedUpdateItems(seen) {
+    const lines = [];
+    const dup = {};
+    UPDATE_LOG.forEach(function (u) {
+      if (u.id <= seen) return;
+      (u.items || []).forEach(function (it) {
+        const t = formatUpdateItem(it);
+        if (!t || dup[t]) return;
+        dup[t] = true;
+        lines.push(t);
+      });
+    });
+    return lines;
+  }
+  function showMissedUpdates() {
+    const lines = missedUpdateItems(meta.lastUpdateId | 0);
+    if (!lines.length) return;
+    $("updateList").innerHTML = lines.map(function (t) { return "<div>" + t + "</div>"; }).join("");
+    $("updateModal").classList.add("show");
+  }
+  function ackUpdates() {
+    meta.lastUpdateId = latestUpdateId();
+    saveMeta();
+    $("updateModal").classList.remove("show");
   }
   async function logout() {
     try { await fbAuth.signOut(); } catch {}
@@ -2877,6 +3020,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("authPw").value = "";
     $("authPw2").value = "";
     setAuthMode("login");
+    $("updateModal").classList.remove("show");
     showScreen("auth");
   }
   async function submitAuth(e) {
@@ -2910,6 +3054,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   $("authForm").onsubmit = submitAuth;
   $("authToggle").onclick = function () { setAuthMode(authMode === "login" ? "signup" : "login"); };
   $("logoutBtn").onclick = logout;
+  $("ackUpdateBtn").onclick = ackUpdates;
   function trainCost(t) {
     return t.cost + trainLv(t.id) * Math.round(t.cost * 0.45);
   }
@@ -2930,7 +3075,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("passSlotTxt").textContent = selectedPassives.length + "/" + passSlots();
     $("zonePickList").innerHTML = ZONES.map((z) => {
       const on = selectedZone === z.id;
-      const nxt = z.id === "ancient" ? "엔딩" : (z.id === "dojo" ? "다음: 숲" : "다음 구역 450G");
+      const nxt = z.id === "ancient" ? "엔딩" : (z.id === "dojo" ? "다음: 작은 숲 · 450G 자동" : "다음 구역 450G");
       return '<div class="pass-item' + (on ? " on" : "") + '" data-zone="' + z.id + '"><div><b>' + z.icon + " " + z.name + '</b><div class="cardInfo">' + z.desc + '</div><div class="stars">' + z.stars + " · " + nxt + "</div></div><b>×" + z.diff.toFixed(1) + "</b></div>";
     }).join("");
     $("passPickList").innerHTML = PASSIVES.map((p) => {
@@ -2969,6 +3114,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("shopModal").classList.remove("show");
     $("gameOverModal").classList.remove("show");
     $("endingModal").classList.remove("show");
+    $("updateModal").classList.remove("show");
     showScreen("menu");
   };
   $("trainUpList").onclick = function (e) {
@@ -3014,14 +3160,14 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     renderPassPick();
   };
 
-  function die() {
+  function die(reason) {
     dead = true; rewardOpen = false; busy = false;
     $("rewardModal").classList.remove("show");
     const gain = bankRunGold();
-    $("deathRecord").textContent = currentZone().icon + currentZone().name + " · 처치 " + kills + " · 동료 " + allies.length + " · 검 +" + sword;
+    $("deathRecord").textContent = currentZone().icon + currentZone().name + " · 처치 " + kills + " · 동료 " + allies.length + " · 검 +" + sword + (reason ? " · " + reason : "");
     $("deathMeta").textContent = "훈련 자금 +" + gain + "  (보유 " + meta.gold + ")";
     $("gameOverModal").classList.add("show");
-    log("검사가 쓰러졌다. 훈련 자금 +" + gain);
+    log((reason ? reason + ". " : "") + "검사가 쓰러졌다. 훈련 자금 +" + gain);
     tone(90, 0.5, "sine", 0.06);
     updateUI();
   }
@@ -3058,6 +3204,6 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     enterGame(user.displayName || "검사", user.uid);
   });
 })();
-</script>
+  </script>
 </body>
 </html>
