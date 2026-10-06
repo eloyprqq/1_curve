@@ -838,6 +838,17 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   </div>
 </div>
 
+<div class="modal" id="tutModal">
+  <div class="modalBox">
+    <div class="modalTitle">튜토리얼</div>
+    <div class="modalDesc">처음 온 검사다.<br>연습장에서 조작을 익힐까?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button id="tutYes" type="button">🪵 튜토리얼 보기</button>
+      <button id="tutNo" type="button">건너뛰기</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="updateModal">
   <div class="modalBox">
     <div class="modalTitle">업데이트</div>
@@ -1072,7 +1083,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   let selectedPassives = [];
   let selectedZone = "forest";
   function defaultMeta() {
-    return { gold: 80, train: {}, unlocked: ["iron", "keen"], lastUpdateId: 0 };
+    return { gold: 80, train: {}, unlocked: ["iron", "keen"], lastUpdateId: 0, tutorialDone: false };
   }
   function parseMeta(m) {
     if (!m) return defaultMeta();
@@ -1080,7 +1091,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       gold: Math.max(0, m.gold | 0),
       train: m.train && typeof m.train === "object" ? m.train : {},
       unlocked: Array.isArray(m.unlocked) ? m.unlocked : ["iron", "keen"],
-      lastUpdateId: m.lastUpdateId | 0
+      lastUpdateId: m.lastUpdateId | 0,
+      tutorialDone: !!m.tutorialDone
     };
   }
   function loadLocalMeta() {
@@ -1099,7 +1111,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         gold: meta.gold,
         train: meta.train,
         unlocked: meta.unlocked,
-        lastUpdateId: meta.lastUpdateId | 0
+        lastUpdateId: meta.lastUpdateId | 0,
+        tutorialDone: !!meta.tutorialDone
       }, { merge: true }).catch(function () {});
     }
   }
@@ -1110,10 +1123,14 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       if (!snap.exists) {
         const m = loadLocalMeta();
         m.lastUpdateId = latestUpdateId();
-        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked, lastUpdateId: m.lastUpdateId });
+        m.tutorialDone = false;
+        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked, lastUpdateId: m.lastUpdateId, tutorialDone: false });
         return m;
       }
-      return parseMeta(snap.data());
+      const data = snap.data() || {};
+      const m = parseMeta(data);
+      if (data.tutorialDone == null) m.tutorialDone = true;
+      return m;
     } catch {
       return loadLocalMeta();
     }
@@ -2979,7 +2996,21 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     meta = await loadCloudMeta();
     saveMeta();
     showScreen("menu");
-    showMissedUpdates();
+    if (!meta.tutorialDone) showTutorialChoice();
+    else showMissedUpdates();
+  }
+  function showTutorialChoice() {
+    $("tutModal").classList.add("show");
+  }
+  function finishTutorialChoice(play) {
+    meta.tutorialDone = true;
+    selectedZone = play ? "dojo" : "forest";
+    saveMeta();
+    $("tutModal").classList.remove("show");
+    if (play) {
+      showScreen("pass");
+      renderPassPick();
+    }
   }
   function formatUpdateItem(it) {
     if (it.kind === "skill") return "스킬이 추가되었습니다.(" + it.name + ")";
@@ -3021,6 +3052,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("authPw2").value = "";
     setAuthMode("login");
     $("updateModal").classList.remove("show");
+    $("tutModal").classList.remove("show");
     showScreen("auth");
   }
   async function submitAuth(e) {
@@ -3055,6 +3087,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   $("authToggle").onclick = function () { setAuthMode(authMode === "login" ? "signup" : "login"); };
   $("logoutBtn").onclick = logout;
   $("ackUpdateBtn").onclick = ackUpdates;
+  $("tutYes").onclick = function () { finishTutorialChoice(true); };
+  $("tutNo").onclick = function () { finishTutorialChoice(false); };
   function trainCost(t) {
     return t.cost + trainLv(t.id) * Math.round(t.cost * 0.45);
   }
@@ -3115,6 +3149,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     $("gameOverModal").classList.remove("show");
     $("endingModal").classList.remove("show");
     $("updateModal").classList.remove("show");
+    $("tutModal").classList.remove("show");
     showScreen("menu");
   };
   $("trainUpList").onclick = function (e) {
