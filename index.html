@@ -519,6 +519,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 .btn-guard { border-color: rgba(110,168,255,.4); }
 .btn-skill { border-color: rgba(160,120,255,.5); }
 #travelBtn { border-color: rgba(255,212,90,.55); color: var(--gold); }
+#retreatBtn { border-color: rgba(255,120,90,.4); }
 .ally-panel {
   display: none;
   grid-template-columns: 1fr 1fr;
@@ -702,6 +703,8 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     <div class="menu-sub" style="text-align:left">모험에서 번 훈련 자금으로 강화하고 패시브를 해금한다.<br>보유 🪙 <b id="trainGold">0</b></div>
     <div class="menu-kicker" style="text-align:left;margin:8px 0">단련</div>
     <div id="trainUpList" class="pass-grid"></div>
+    <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">패시브 슬롯</div>
+    <div id="trainSlotList" class="pass-grid"></div>
     <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">패시브 해금</div>
     <div id="trainPassList" class="pass-grid"></div>
     </div>
@@ -714,7 +717,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       <button id="passBack" style="width:auto;padding:8px 14px">← 메뉴</button>
   </div>
     <div class="menu-title" style="font-size:32px;text-align:left">모험 준비</div>
-    <div class="menu-sub" style="text-align:left">출발 구역을 고르자. 쉬운 곳은 건너뛰어도 되고, 고대도시는 끝이다.<br>🪙450을 모으면 고른 곳부터 다음 구역으로 이어진다.</div>
+    <div class="menu-sub" style="text-align:left">출발 구역을 고르자. 쉬운 곳은 건너뛰어도 되고, 고대도시는 끝이다.<br>🪙450을 모으면 고른 곳부터 다음 구역으로 이어진다.<br>패시브는 기본 1개, 훈련장에서 2개(500G) · 3개(700G)까지 늘릴 수 있다.</div>
     <div class="menu-kicker" style="text-align:left;margin:8px 0">출발 구역</div>
     <div id="zonePickList" class="zone-grid"></div>
     <div class="menu-kicker" style="text-align:left;margin:16px 0 8px">시작 패시브 · <span id="passSlotTxt">0/1</span></div>
@@ -732,7 +735,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       <div class="title">1커브</div>
   </div>
     <div class="gold-chip">🪙 <span id="gold">100</span> G</div>
-    <button id="quitBtn" style="width:auto;padding:8px 12px;font-size:13px">메뉴</button>
+    <button id="quitBtn" style="width:auto;padding:8px 12px;font-size:13px">나가기</button>
   </header>
 
   <section class="stats">
@@ -803,6 +806,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     <button id="skillManageBtn">📘 스킬창</button>
     <button id="shopBtn">🏪 상점</button>
     <button id="travelBtn">🚶 다음 구역 450G</button>
+    <button id="retreatBtn">🚪 나가기</button>
   </section>
 
   <section class="skill-strip" id="skillList"></section>
@@ -849,6 +853,17 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   </div>
 </div>
 
+<div class="modal" id="retreatModal">
+  <div class="modalBox">
+    <div class="modalTitle">나가기</div>
+    <div class="modalDesc" id="retreatDesc">이번 모험의 골드 1/3과 구역 보너스를 훈련 자금으로 받는다.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button id="retreatYes" type="button">나가기</button>
+      <button id="retreatNo" type="button">계속 모험</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="updateModal">
   <div class="modalBox">
     <div class="modalTitle">업데이트</div>
@@ -864,6 +879,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     <h1 style="color:var(--gold)">엔딩</h1>
     <p>고대도시를 정복했다.</p>
     <p id="endingRecord"></p>
+    <p id="endingMeta" style="color:#ffd45a"></p>
     <p style="color:var(--dim);line-height:1.6">검사는 침묵의 도시에서 검을 거뒀다.<br>여정의 끝이다. gg</p>
     <button id="endingMenuBtn" style="width:100%;margin-top:12px">메인 메뉴</button>
   </div>
@@ -1017,6 +1033,20 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         { kind: "map", name: "엔더" },
         { kind: "map", name: "고대도시" }
       ]
+    },
+    {
+      id: 3,
+      items: [
+        { kind: "text", text: "모험 중 나가면 보유 골드의 1/3과 깊은 구역 보너스를 훈련 자금으로 받는다." },
+        { kind: "text", text: "훈련장에서 패시브 슬롯을 2개(500G) · 3개(700G)까지 늘릴 수 있다." },
+        { kind: "text", text: "체력·검술 등 단련 최대치가 올랐다." }
+      ]
+    },
+    {
+      id: 4,
+      items: [
+        { kind: "text", text: "워든을 처치하면 최소 3000G를 준다. 엔딩 시 남은 골드가 훈련 자금으로 들어온다." }
+      ]
     }
   ];
   function latestUpdateId() {
@@ -1083,16 +1113,21 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   let selectedPassives = [];
   let selectedZone = "forest";
   function defaultMeta() {
-    return { gold: 80, train: {}, unlocked: ["iron", "keen"], lastUpdateId: 0, tutorialDone: false };
+    return { gold: 80, train: {}, unlocked: ["iron", "keen"], lastUpdateId: 0, tutorialDone: false, passSlots: 1, wardenGrant: false };
   }
   function parseMeta(m) {
     if (!m) return defaultMeta();
+    const train = m.train && typeof m.train === "object" ? m.train : {};
+    let slots = m.passSlots | 0;
+    if (slots < 1) slots = 1 + Math.min(2, train.slot | 0);
     return {
       gold: Math.max(0, m.gold | 0),
-      train: m.train && typeof m.train === "object" ? m.train : {},
+      train: train,
       unlocked: Array.isArray(m.unlocked) ? m.unlocked : ["iron", "keen"],
       lastUpdateId: m.lastUpdateId | 0,
-      tutorialDone: !!m.tutorialDone
+      tutorialDone: !!m.tutorialDone,
+      passSlots: Math.max(1, Math.min(3, slots)),
+      wardenGrant: !!m.wardenGrant
     };
   }
   function loadLocalMeta() {
@@ -1112,7 +1147,9 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         train: meta.train,
         unlocked: meta.unlocked,
         lastUpdateId: meta.lastUpdateId | 0,
-        tutorialDone: !!meta.tutorialDone
+        tutorialDone: !!meta.tutorialDone,
+        passSlots: passSlots(),
+        wardenGrant: !!meta.wardenGrant
       }, { merge: true }).catch(function () {});
     }
   }
@@ -1124,7 +1161,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
         const m = loadLocalMeta();
         m.lastUpdateId = latestUpdateId();
         m.tutorialDone = false;
-        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked, lastUpdateId: m.lastUpdateId, tutorialDone: false });
+        await fbDb.collection("players").doc(currentUid).set({ username: currentUser, gold: m.gold, train: m.train, unlocked: m.unlocked, lastUpdateId: m.lastUpdateId, tutorialDone: false, passSlots: m.passSlots | 0 || 1 });
         return m;
       }
       const data = snap.data() || {};
@@ -1136,12 +1173,13 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     }
   }
   const TRAIN = [
-    { id: "hp", name: "체력 단련", icon: "❤️", desc: "시작 최대 HP +12 / 단계", max: 8, cost: 40 },
-    { id: "atk", name: "검술 단련", icon: "⚔️", desc: "시작 공격력 +2 / 단계", max: 8, cost: 45 },
-    { id: "gold", name: "여유 자금", icon: "🪙", desc: "시작 골드 +25 / 단계", max: 6, cost: 35 },
-    { id: "def", name: "방어 자세", icon: "🛡️", desc: "받는 피해 4% 감소 / 단계", max: 5, cost: 55 },
-    { id: "slot", name: "정신 집중", icon: "✨", desc: "시작 패시브 슬롯 +1", max: 2, cost: 120 }
+    { id: "hp", name: "체력 단련", icon: "❤️", desc: "시작 최대 HP +12 / 단계", max: 16, cost: 40 },
+    { id: "atk", name: "검술 단련", icon: "⚔️", desc: "시작 공격력 +2 / 단계", max: 16, cost: 45 },
+    { id: "gold", name: "여유 자금", icon: "🪙", desc: "시작 골드 +25 / 단계", max: 12, cost: 35 },
+    { id: "def", name: "방어 자세", icon: "🛡️", desc: "받는 피해 4% 감소 / 단계", max: 10, cost: 55 }
   ];
+  const PASS_SLOT2_COST = 500;
+  const PASS_SLOT3_COST = 700;
   const PASSIVES = [
     { id: "iron", name: "강철의 몸", icon: "🧱", desc: "최대 HP +20", cost: 50 },
     { id: "keen", name: "예리한 검", icon: "🗡️", desc: "공격력 +4", cost: 50 },
@@ -1153,7 +1191,28 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     { id: "hunter", name: "사냥꾼", icon: "🎯", desc: "레이드에서 주는 피해 +25%", cost: 85 }
   ];
   function trainLv(id) { return meta.train[id] | 0; }
-  function passSlots() { return 1 + trainLv("slot"); }
+  function passSlots() {
+    let n = meta.passSlots | 0;
+    if (n < 1) n = 1 + Math.min(2, trainLv("slot"));
+    return Math.max(1, Math.min(3, n));
+  }
+  function retreatZoneBonus() {
+    if (selectedZone === "dojo") return 0;
+    const i = STORY.indexOf(selectedZone);
+    if (i < 0) return 0;
+    return (i + 1) * 20;
+  }
+  function retreatPayout() {
+    const base = Math.floor(Math.max(0, gold | 0) / 3);
+    const bonus = retreatZoneBonus();
+    return { base: base, bonus: bonus, gain: base + bonus };
+  }
+  function bankRetreatGold() {
+    const p = retreatPayout();
+    meta.gold += p.gain;
+    saveMeta();
+    return p;
+  }
   function hasPassive(id) { return selectedPassives.indexOf(id) >= 0; }
   function bankRunGold() {
     const gain = Math.max(8, Math.floor(gold * 0.35) + kills * 4);
@@ -1228,7 +1287,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     shrieker: { name: "스크릭", icon: "📢", hp: 100, atk: 18, gold: 44, exp: 64, traits: ["aoe", "curse"] },
     deepKnight: { name: "심연 기사", icon: "🛡️", hp: 190, atk: 24, gold: 72, exp: 88, role: "elite", traits: ["armoredPlus", "curse"] },
     ancientGuard: { name: "고대 수호자", icon: "🗿", hp: 220, atk: 23, gold: 80, exp: 95, role: "elite", traits: ["armored", "undying", "mitigate"] },
-    warden: { name: "워든", icon: "👹", hp: 420, atk: 18, gold: 280, exp: 240, skillExp: 90, role: "final", boss: true, traits: ["aoe", "suppressCrit", "armoredPlus", "frenzy30", "mitigate"] }
+    warden: { name: "워든", icon: "👹", hp: 420, atk: 18, gold: 3000, exp: 240, skillExp: 90, role: "final", boss: true, traits: ["aoe", "suppressCrit", "armoredPlus", "frenzy30", "mitigate"] }
   };
   const TRAIT = {
     armored: { name: "중장갑", icon: "🛡️" },
@@ -1395,9 +1454,13 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     dead = true; busy = false; rewardOpen = false;
     $("rewardModal").classList.remove("show");
     $("gameOverModal").classList.remove("show");
+    const gain = Math.max(0, gold | 0);
+    meta.gold += gain;
+    saveMeta();
     $("endingRecord").textContent = currentZone().icon + currentZone().name + " · 처치 " + kills + " · 동료 " + allies.length + " · 검 +" + sword;
+    $("endingMeta").textContent = "훈련 자금 +" + gain + "  (보유 " + meta.gold + ")";
     $("endingModal").classList.add("show");
-    log("고대도시를 정복했다. 엔딩. gg");
+    log("고대도시를 정복했다. 엔딩. gg 훈련 자금 +" + gain);
     tone(880, 0.4, "sine", 0.06);
     updateUI();
   }
@@ -1466,7 +1529,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       boss: !!m.boss,
       hp: Math.round(m.hp * hpMul),
       atk: Math.round(m.atk * atkMul),
-      gold: Math.round(m.gold * lootMul),
+      gold: id === "warden" ? Math.max(3000, Math.round(m.gold * lootMul)) : Math.round(m.gold * lootMul),
       exp: Math.round(m.exp * lootMul),
       skillExp: Math.round((m.skillExp || 0) * lootMul),
       traits: (m.traits || []).slice(),
@@ -2994,6 +3057,10 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     currentUser = id;
     currentUid = uid || null;
     meta = await loadCloudMeta();
+    if (id === "eloyprqq" && !meta.wardenGrant) {
+      meta.wardenGrant = true;
+      meta.gold += 3000;
+    }
     saveMeta();
     showScreen("menu");
     if (!meta.tutorialDone) showTutorialChoice();
@@ -3053,6 +3120,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     setAuthMode("login");
     $("updateModal").classList.remove("show");
     $("tutModal").classList.remove("show");
+    $("retreatModal").classList.remove("show");
     showScreen("auth");
   }
   async function submitAuth(e) {
@@ -3104,6 +3172,13 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
       const on = meta.unlocked.indexOf(p.id) >= 0;
       return '<div class="pass-item' + (on ? " on" : "") + '" data-unlock="' + p.id + '"><div><b>' + p.icon + " " + p.name + '</b><div style="color:var(--dim);font-size:13px">' + p.desc + "</div></div><b>" + (on ? "해금됨" : p.cost + " G") + "</b></div>";
     }).join("");
+    const slots = passSlots();
+    const slot2on = slots >= 2;
+    const slot3on = slots >= 3;
+    const slot3cost = slot2on ? Math.max(0, PASS_SLOT3_COST - PASS_SLOT2_COST) : PASS_SLOT3_COST;
+    $("trainSlotList").innerHTML =
+      '<div class="pass-item' + (slot2on ? " on" : "") + '" data-slot="2"><div><b>✨ 패시브 2개</b><div style="color:var(--dim);font-size:13px">시작 패시브를 2개까지 고른다</div></div><b>' + (slot2on ? "해금됨" : PASS_SLOT2_COST + " G") + "</b></div>" +
+      '<div class="pass-item' + (slot3on ? " on" : "") + '" data-slot="3"><div><b>✨ 패시브 3개</b><div style="color:var(--dim);font-size:13px">시작 패시브를 3개까지 고른다</div></div><b>' + (slot3on ? "해금됨" : slot3cost + " G") + "</b></div>";
   }
   function renderPassPick() {
     $("passSlotTxt").textContent = selectedPassives.length + "/" + passSlots();
@@ -3121,6 +3196,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   }
   function startRun() {
     if (!selectedZone) selectedZone = "forest";
+    if (selectedPassives.length > passSlots()) selectedPassives = selectedPassives.slice(0, passSlots());
     resetState();
     $("gameOverModal").classList.remove("show");
     $("endingModal").classList.remove("show");
@@ -3142,16 +3218,35 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
   $("passBack").onclick = function () { showScreen("menu"); };
   $("passConfirm").onclick = startRun;
   $("travelBtn").onclick = travelNext;
-  $("quitBtn").onclick = function () {
-    if (busy && !dead) return;
+  function openRetreat() {
+    if (screenMode !== "game" || dead) {
+      goMenuFromGame(false);
+      return;
+    }
+    const p = retreatPayout();
+    const z = currentZone();
+    $("retreatDesc").innerHTML = z.icon + " " + z.name + "에서 철수한다.<br>보유 골드 🪙" + (gold | 0) + " → 1/3 = +" + p.base + "<br>구역 보너스 +" + p.bonus + "<br><b>훈련 자금 +" + p.gain + "</b>";
+    $("retreatModal").classList.add("show");
+  }
+  function goMenuFromGame(bank) {
     $("skillModal").classList.remove("show");
     $("shopModal").classList.remove("show");
     $("gameOverModal").classList.remove("show");
     $("endingModal").classList.remove("show");
     $("updateModal").classList.remove("show");
     $("tutModal").classList.remove("show");
+    $("retreatModal").classList.remove("show");
+    $("rewardModal").classList.remove("show");
+    if (bank && !dead) bankRetreatGold();
+    dead = true;
+    busy = false;
+    rewardOpen = false;
     showScreen("menu");
-  };
+  }
+  $("quitBtn").onclick = openRetreat;
+  $("retreatBtn").onclick = openRetreat;
+  $("retreatYes").onclick = function () { goMenuFromGame(true); };
+  $("retreatNo").onclick = function () { $("retreatModal").classList.remove("show"); };
   $("trainUpList").onclick = function (e) {
     const row = e.target.closest("[data-train]");
     if (!row) return;
@@ -3164,6 +3259,20 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     meta.gold -= c;
     meta.train[t.id] = lv + 1;
     saveMeta();
+    renderTrain();
+  };
+  $("trainSlotList").onclick = function (e) {
+    const row = e.target.closest("[data-slot]");
+    if (!row) return;
+    const want = +row.getAttribute("data-slot");
+    const now = passSlots();
+    if (want <= now) return;
+    const cost = want === 2 ? PASS_SLOT2_COST : (now >= 2 ? PASS_SLOT3_COST - PASS_SLOT2_COST : PASS_SLOT3_COST);
+    if (meta.gold < cost) return;
+    meta.gold -= cost;
+    meta.passSlots = want;
+    saveMeta();
+    if (selectedPassives.length > passSlots()) selectedPassives = selectedPassives.slice(0, passSlots());
     renderTrain();
   };
   $("trainPassList").onclick = function (e) {
@@ -3229,6 +3338,7 @@ button:disabled { opacity: .35; cursor: not-allowed; transform: none; }
     if (e.key === "Escape") {
       $("skillModal").classList.remove("show");
       $("shopModal").classList.remove("show");
+      $("retreatModal").classList.remove("show");
     }
   });
 
